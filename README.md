@@ -7,7 +7,7 @@ An interactive web playground for building and testing [django-bird](https://git
 
 ## Getting Started
 
-Visit [https://django-bird-playground.joshthomasdev.workers.dev] to try it out.
+Visit [https://django-bird-playground.joshthomasdev.workers.dev](https://django-bird-playground.joshthomasdev.workers.dev) to try it out.
 
 1. Choose an example component from the bottom of the page
 2. Edit the HTML template, CSS, and JavaScript in the tabs
