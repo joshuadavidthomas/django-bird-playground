@@ -731,13 +731,13 @@ modals.forEach(function(backdrop) {
         console.log('🚀 Starting initialization...');
 
         // Wait for Django to be available
-        if (!window.Django) {
+        if (!Django) {
           output.innerHTML = '<div class="status error">❌ Django not loaded</div>';
           return;
         }
 
         // Setup event listeners for Django
-        window.Django.addEventListener('loading', (e) => {
+        Django.addEventListener('loading', (e) => {
           const stepMessages = {
             'pyodide': '📦 Loading Pyodide...',
             'packages': '📦 Installing packages...',
@@ -747,12 +747,12 @@ modals.forEach(function(backdrop) {
           output.innerHTML = `<div class="status loading">${message}</div>`;
         });
 
-        window.Django.addEventListener('error', (e) => {
+        Django.addEventListener('error', (e) => {
           console.error('❌ Django setup failed:', e.detail.error);
           output.innerHTML = `<div class="status error">❌ Setup failed: ${e.detail.message}</div>`;
         });
 
-        window.Django.addEventListener('ready', async () => {
+        Django.addEventListener('ready', async () => {
           // Setup django-bird specific functionality
           await setupDjangoBird();
 
@@ -770,7 +770,7 @@ modals.forEach(function(backdrop) {
         });
 
         // Initialize Django
-        await window.Django.init();
+        await Django.init();
 
       } catch (error) {
         console.error('❌ Initialization failed:', error);
@@ -780,10 +780,10 @@ modals.forEach(function(backdrop) {
 
     async function setupDjangoBird() {
       // Install django-bird first
-      await window.Django.installPackage('django-bird');
+      await Django.installPackage('django-bird');
 
       // Setup django-bird specific functionality
-      await window.Django.runPython(`
+      await Django.runPython(`
 import os
 import re
 
@@ -914,7 +914,7 @@ print("Django-bird playground ready!")
 
       try {
         // Clean API: pass data directly to Python!
-        const result = await window.Django.runPython(`
+        const result = await Django.runPython(`
 import json
 result = render_component(component_name, html_template, css_content, js_content, usage_template)
 json.dumps(result)
@@ -997,7 +997,7 @@ json.dumps(result)
 
     // Wait for Django to be available, then init
     function waitForDjango() {
-      if (window.Django) {
+      if (Django) {
         init();
       } else {
         setTimeout(waitForDjango, 100);

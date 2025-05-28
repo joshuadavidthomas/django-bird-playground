@@ -18,6 +18,7 @@ import type { DjangoConfig } from "./types";
 	const django = createDjango(config);
 
 	(window as any).Django = django;
+	(globalThis as any).Django = django;
 
 	if (config.autoInit) {
 		const initWhenReady = () => {
