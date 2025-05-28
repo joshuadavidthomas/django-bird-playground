@@ -2,20 +2,33 @@
 	"name": "django-bird-playground",
 	"version": "0.0.0",
 	"private": true,
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"browser": "./dist/index.js",
+	"files": [
+		"dist"
+	],
 	"scripts": {
+		"build": "vite build --config vite.worker.config.ts && vite build && bunx tsc --project tsconfig.build.json",
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"format": "biome check --write",
 		"lint": "biome check",
-		"start": "wrangler dev"
+		"start": "wrangler dev",
+		"typecheck": "bunx tsc --noEmit"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@types/bun": "latest",
+		"vite": "^6.3.5",
 		"wrangler": "^4.17.0"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
 	},
-	"trustedDependencies": ["@biomejs/biome"]
+	"trustedDependencies": ["@biomejs/biome"],
+	"dependencies": {
+		"pyodide": "^0.27.6"
+	}
 }

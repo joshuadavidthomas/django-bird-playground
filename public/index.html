@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Django Bird Playground</title>
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.27.6/full/pyodide.js"></script>
+  <script src="../dist/index.js" data-packages="django-bird" data-auto-init="false"></script>
 
   <!-- CodeMirror -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
@@ -307,7 +307,6 @@
     // Register the web component
     customElements.define('bird-output', BirdOutput);
 
-    let pyodide;
     let htmlEditor, cssEditor, jsEditor, usageEditor;
 
     const examples = {
@@ -445,7 +444,7 @@ closeButtons.forEach(function(button) {
 {% endbird %}
 
 {% bird alert variant="warning" dismissible=True %}
-  ⚠️ This action cannot be undone.
+  ! This action cannot be undone.
 {% endbird %}
 
 {% bird alert variant="danger" %}
@@ -730,57 +729,101 @@ modals.forEach(function(backdrop) {
 
       try {
         console.log('🚀 Starting initialization...');
-        output.innerHTML = '<div class="status loading">📦 Loading Pyodide...</div>';
-        pyodide = await loadPyodide();
 
-        output.innerHTML = '<div class="status loading">📦 Installing packages...</div>';
-        await pyodide.loadPackage("micropip");
-        const micropip = pyodide.pyimport("micropip");
-        await micropip.install("django");
-        await micropip.install("django-bird");
+        // Wait for DjangoSandbox to be available
+        if (!window.DjangoSandbox) {
+          output.innerHTML = '<div class="status error">❌ DjangoSandbox not loaded</div>';
+          return;
+        }
 
-        output.innerHTML = '<div class="status loading">⚙️ Setting up Django...</div>';
-        pyodide.runPython(`
+        // Setup event listeners for DjangoSandbox
+        window.DjangoSandbox.addEventListener('loading', (e) => {
+          const stepMessages = {
+            'pyodide': '📦 Loading Pyodide...',
+            'packages': '📦 Installing packages...',
+            'django': '⚙ Setting up Django...'
+          };
+          const message = stepMessages[e.detail.step] || e.detail.message;
+          output.innerHTML = `<div class="status loading">${message}</div>`;
+        });
+
+        window.DjangoSandbox.addEventListener('error', (e) => {
+          console.error('❌ Django setup failed:', e.detail.error);
+          output.innerHTML = `<div class="status error">❌ Setup failed: ${e.detail.message}</div>`;
+        });
+
+        window.DjangoSandbox.addEventListener('ready', async () => {
+          // Setup django-bird specific functionality
+          await setupDjangoBird();
+
+          // Initialize CodeMirror editors
+          initEditors();
+
+          // Load default example
+          loadExample('button');
+
+          // Enable controls
+          document.getElementById('run').disabled = false;
+          document.getElementById('run').textContent = '▶ Run Component';
+
+          output.innerHTML = '<div class="status success">✅ Ready! Choose an example or create your own component.</div>';
+        });
+
+        // Initialize DjangoSandbox
+        await window.DjangoSandbox.init();
+
+      } catch (error) {
+        console.error('❌ Initialization failed:', error);
+        output.innerHTML = `<div class="status error">❌ Setup failed: ${error.message}</div>`;
+      }
+    }
+
+    async function setupDjangoBird() {
+      // Install django-bird first
+      await window.DjangoSandbox.installPackage('django-bird');
+
+      // Setup django-bird specific functionality
+      await window.DjangoSandbox.runPython(`
 import os
-from django.conf import settings
+import re
 
-# Create virtual filesystem
+# Create bird templates directory
 os.makedirs('/templates/bird', exist_ok=True)
 
-if not settings.configured:
-    settings.configure(
-        DEBUG=True,
-        SECRET_KEY='playground-secret-key',
-        INSTALLED_APPS=[
-            'django.contrib.contenttypes',
-            'django.contrib.auth',
-            'django_bird',
-        ],
-        TEMPLATES=[{
-            'BACKEND': 'django.template.backends.django.DjangoTemplates',
-            'DIRS': ['/templates'],
-            'APP_DIRS': True,
-            'OPTIONS': {
-                'builtins': ['django_bird.templatetags.django_bird'],
-            },
-        }],
-    )
+# Add django_bird to INSTALLED_APPS if not already there
+from django.conf import settings
+if 'django_bird' not in settings.INSTALLED_APPS:
+    settings.INSTALLED_APPS = list(settings.INSTALLED_APPS) + ['django_bird']
 
-import django
-django.setup()
-
-from django.template import Template, Context
-import re
+# Update template settings to include django_bird
+template_settings = settings.TEMPLATES[0]
+if 'django_bird.templatetags.django_bird' not in template_settings.get('OPTIONS', {}).get('builtins', []):
+    builtins = template_settings.get('OPTIONS', {}).get('builtins', [])
+    builtins.append('django_bird.templatetags.django_bird')
+    template_settings['OPTIONS'] = template_settings.get('OPTIONS', {})
+    template_settings['OPTIONS']['builtins'] = builtins
 
 def render_component(component_name, html_template, css_content, js_content, usage_template):
     """Render a django-bird component"""
     try:
+        from django.template import Template, Context
+
         # Extract all component names from usage
         component_names = list(set(re.findall(r'{%\\s*bird\\s+(\\w+)', usage_template)))
 
         # Write component files for each component found in usage
         for name in component_names:
-            component_path = f'/templates/bird/{name}.html'
+            # Create directory structure that django-bird expects
+            component_dir = f'/templates/bird/{name}'
+            os.makedirs(component_dir, exist_ok=True)
+            
+            # django-bird looks for these templates in order:
+            # 1. bird/{name}/{name}.html
+            # 2. bird/{name}/index.html  
+            # 3. bird/{name}.html
+            
+            # Create the primary template
+            component_path = f'{component_dir}/{name}.html'
             with open(component_path, 'w') as f:
                 f.write(html_template)
 
@@ -801,32 +844,18 @@ def render_component(component_name, html_template, css_content, js_content, usa
 
     except Exception as e:
         import traceback
-        error_msg = f"Error: {str(e)}\\n\\n{traceback.format_exc()}"
+        error_msg = f"Error: {str(e)}\\\\n\\\\n{traceback.format_exc()}"
         return {
             'html': f'<div style="background: #fee; border: 1px solid #fcc; color: #c00; padding: 12px; border-radius: 4px; font-family: monospace; white-space: pre-wrap;">{error_msg}</div>',
             'css': '',
             'js': ''
         }
 
+# Make render_component available globally
+globals()['render_component'] = render_component
+
 print("Django-bird playground ready!")
-        `);
-
-        // Initialize CodeMirror editors
-        initEditors();
-
-        // Load default example
-        loadExample('button');
-
-        // Enable controls
-        document.getElementById('run').disabled = false;
-        document.getElementById('run').textContent = '▶ Run Component';
-
-        output.innerHTML = '<div class="status success">✅ Ready! Choose an example or create your own component.</div>';
-
-      } catch (error) {
-        console.error('❌ Initialization failed:', error);
-        output.innerHTML = `<div class="status error">❌ Setup failed: ${error.message}</div>`;
-      }
+      `);
     }
 
     function initEditors() {
@@ -870,7 +899,7 @@ print("Django-bird playground ready!")
       }
     }
 
-    function run() {
+    async function run() {
       const output = document.getElementById('output');
       const runBtn = document.getElementById('run');
 
@@ -884,16 +913,23 @@ print("Django-bird playground ready!")
       runBtn.textContent = 'Running...';
 
       try {
-        pyodide.globals.set("comp_name", componentName);
-        pyodide.globals.set("html_tmpl", htmlTemplate);
-        pyodide.globals.set("css_content", cssContent);
-        pyodide.globals.set("js_content", jsContent);
-        pyodide.globals.set("usage_tmpl", usageTemplate);
+        // Use the worker-based runPython method with proper string escaping
+        const result = await window.DjangoSandbox.runPython(`
+import json
+import base64
 
-        const result = pyodide.runPython(`render_component(comp_name, html_tmpl, css_content, js_content, usage_tmpl)`);
+# Encode strings to avoid quote issues
+html_b64 = base64.b64decode('${btoa(htmlTemplate)}').decode('utf-8')
+css_b64 = base64.b64decode('${btoa(cssContent)}').decode('utf-8') 
+js_b64 = base64.b64decode('${btoa(jsContent)}').decode('utf-8')
+usage_b64 = base64.b64decode('${btoa(usageTemplate)}').decode('utf-8')
 
-        // Parse the result as a dictionary
-        const parts = result.toJs();
+result = render_component('${componentName}', html_b64, css_b64, js_b64, usage_b64)
+json.dumps(result)
+        `);
+
+        // Parse the result as JSON
+        const parts = JSON.parse(result);
 
         // Create or update the bird-output component
         let birdOutput = output.querySelector('bird-output');
@@ -903,7 +939,7 @@ print("Django-bird playground ready!")
         }
 
         // Render the component with Shadow DOM
-        birdOutput.render(parts.get('html'), parts.get('css'), parts.get('js'));
+        birdOutput.render(parts.html, parts.css, parts.js);
 
       } catch (error) {
         output.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
@@ -961,7 +997,16 @@ print("Django-bird playground ready!")
       }
     });
 
-    init();
+    // Wait for DjangoSandbox to be available, then init
+    function waitForDjangoSandbox() {
+      if (window.DjangoSandbox) {
+        init();
+      } else {
+        setTimeout(waitForDjangoSandbox, 100);
+      }
+    }
+
+    waitForDjangoSandbox();
   </script>
 </body>
 </html>
