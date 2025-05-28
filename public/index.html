@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Django Bird Playground</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.27.6/full/pyodide.js"></script>
+
+  <!-- CodeMirror -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .playground {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      background: #2c3e50;
+      border-bottom: 1px solid #34495e;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      color: #bdc3c7;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      border-radius: 0;
+    }
+
+    .tab:hover {
+      background: #34495e;
+      color: white;
+    }
+
+    .tab.active {
+      background: #3498db;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+      height: 500px;
+      position: relative;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .CodeMirror {
+      height: 100%;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 14px;
+    }
+
+    .controls {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 0 10px;
+    }
+
+    button:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+    }
+
+    button:hover:not(:disabled) {
+      background: #2980b9;
+    }
+
+    .output {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      min-height: 200px;
+    }
+
+    .status {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+
+    .status.success {
+      background: #d5f4e6;
+      color: #27ae60;
+      border: 1px solid #27ae60;
+    }
+
+    .status.error {
+      background: #fadde1;
+      color: #e74c3c;
+      border: 1px solid #e74c3c;
+    }
+
+    .status.loading {
+      background: #dbeafe;
+      color: #3b82f6;
+      border: 1px solid #3b82f6;
+    }
+
+    .examples {
+      margin-top: 30px;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .example {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .example:hover {
+      background: #f8f9fa;
+    }
+
+    .example h4 {
+      margin: 0 0 10px 0;
+      color: #2c3e50;
+    }
+
+    .example p {
+      margin: 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    /* Bird Component Output */
+    bird-output {
+      display: block;
+      width: 100%;
+      min-height: 200px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 20px;
+      background: white;
+    }
+
+    @media (max-width: 768px) {
+      .tabs {
+        flex-wrap: wrap;
+      }
+
+      .tab {
+        flex: 1;
+        text-align: center;
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+
+      .tab-content {
+        height: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🐦 Django Bird Playground</h1>
+    <p>Build and test django-bird components with Shadow DOM isolation</p>
+  </div>
+
+  <div class="playground">
+    <div class="tabs">
+      <button class="tab active" data-tab="html">📄 HTML</button>
+      <button class="tab" data-tab="css">🎨 CSS</button>
+      <button class="tab" data-tab="js">⚡ JS</button>
+      <button class="tab" data-tab="usage">📝 Usage</button>
+    </div>
+
+    <div class="tab-content active" id="html-tab">
+      <textarea id="html-editor"></textarea>
+    </div>
+
+    <div class="tab-content" id="css-tab">
+      <textarea id="css-editor"></textarea>
+    </div>
+
+    <div class="tab-content" id="js-tab">
+      <textarea id="js-editor"></textarea>
+    </div>
+
+    <div class="tab-content" id="usage-tab">
+      <textarea id="usage-editor"></textarea>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="run" disabled>Loading...</button>
+    <button id="clear-output">Clear Output</button>
+  </div>
+
+  <div class="output" id="output">
+    <div class="status loading">🚀 Initializing django-bird...</div>
+  </div>
+
+  <div class="examples">
+    <h3>📚 Example Components</h3>
+
+    <div class="example" data-example="button">
+      <h4>Button Component</h4>
+      <p>Basic button with variant support and click animations</p>
+    </div>
+
+    <div class="example" data-example="alert">
+      <h4>Alert Component</h4>
+      <p>Dismissible alert messages with smooth animations</p>
+    </div>
+
+    <div class="example" data-example="card">
+      <h4>Card Component</h4>
+      <p>Card layout with hover effects and ripple animations</p>
+    </div>
+
+    <div class="example" data-example="modal">
+      <h4>Modal Component</h4>
+      <p>Functional modal dialog with backdrop and animations</p>
+    </div>
+  </div>
+
+  <script>
+    // Define the web component
+    class BirdOutput extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+      }
+
+      render(html, css, js) {
+        // Create the shadow DOM content
+        this.shadowRoot.innerHTML = `
+          <style>
+            :host {
+              display: block;
+              width: 100%;
+              min-height: 200px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              background: white;
+              padding: 20px;
+              box-sizing: border-box;
+            }
+            ${css}
+          </style>
+          ${html}
+        `;
+
+        // Execute JavaScript in the shadow DOM context
+        if (js.trim()) {
+          try {
+            // Create a function that runs in the shadow DOM context
+            const script = new Function('shadowRoot', 'document', js);
+            // Call it with the shadow root and real document
+            script.call(this, this.shadowRoot, document);
+          } catch (error) {
+            console.error('JavaScript execution error:', error);
+            this.shadowRoot.innerHTML += `<div style="color: red; margin-top: 10px;">JS Error: ${error.message}</div>`;
+          }
+        }
+      }
+    }
+
+    // Register the web component
+    customElements.define('bird-output', BirdOutput);
+
+    let pyodide;
+    let htmlEditor, cssEditor, jsEditor, usageEditor;
+
+    const examples = {
+      button: {
+        html: `{% bird:prop variant="primary" size="md" %}
+<button class="btn btn-{{ props.variant }} btn-{{ props.size }}" {{ attrs }}>
+  {{ slot }}
+</button>`,
+        css: `.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #3498db;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2980b9;
+}
+
+.btn-secondary {
+  background: #95a5a6;
+  color: white;
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 18px;
+}`,
+        js: `// Button click animations
+const buttons = shadowRoot.querySelectorAll('.btn');
+buttons.forEach(function(button) {
+  button.addEventListener('click', function() {
+    console.log('Button clicked:', this.textContent.trim());
+    this.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      this.style.transform = 'scale(1)';
+    }, 150);
+  });
+});`,
+        usage: `{% bird button variant="primary" %}
+  Primary Button
+{% endbird %}
+
+{% bird button variant="secondary" size="lg" %}
+  Large Secondary Button
+{% endbird %}
+
+{% bird button variant="primary" size="sm" disabled=True %}
+  Small Disabled Button
+{% endbird %}`
+      },
+
+      alert: {
+        html: `{% bird:prop variant="info" dismissible=False %}
+<div class="alert alert-{{ props.variant }}{% if props.dismissible %} alert-dismissible{% endif %}" {{ attrs }}>
+  {% if props.dismissible %}
+    <button type="button" class="btn-close">&times;</button>
+  {% endif %}
+  {{ slot }}
+</div>`,
+        css: `.alert {
+  padding: 12px 16px;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.alert-info {
+  color: #0c5460;
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+}
+
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.alert-warning {
+  color: #856404;
+  background-color: #fff3cd;
+  border-color: #ffeaa7;
+}
+
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+
+.alert-dismissible {
+  position: relative;
+  padding-right: 3rem;
+}
+
+.btn-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  color: inherit;
+}`,
+        js: `// Alert dismissal
+const closeButtons = shadowRoot.querySelectorAll('.btn-close');
+closeButtons.forEach(function(button) {
+  button.addEventListener('click', function() {
+    const alert = this.closest('.alert');
+    alert.style.transition = 'all 0.3s ease';
+    alert.style.opacity = '0';
+    alert.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      alert.remove();
+    }, 300);
+  });
+});`,
+        usage: `{% bird alert variant="success" %}
+  ✅ Your changes have been saved successfully!
+{% endbird %}
+
+{% bird alert variant="warning" dismissible=True %}
+  ⚠️ This action cannot be undone.
+{% endbird %}
+
+{% bird alert variant="danger" %}
+  ❌ Something went wrong. Please try again.
+{% endbird %}`
+      },
+
+      card: {
+        html: `{% bird:prop title="" %}
+<div class="card" {{ attrs }}>
+  {% if props.title %}
+    <div class="card-header">
+      <h3 class="card-title">{{ props.title }}</h3>
+    </div>
+  {% endif %}
+
+  {% if slots.header %}
+    <div class="card-header">
+      {% bird:slot header %}{% endbird:slot %}
+    </div>
+  {% endif %}
+
+  <div class="card-body">
+    {{ slot }}
+  </div>
+
+  {% if slots.footer %}
+    <div class="card-footer">
+      {% bird:slot footer %}{% endbird:slot %}
+    </div>
+  {% endif %}
+</div>`,
+        css: `.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  padding: 1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  border-radius: 8px 8px 0 0;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+.card-footer {
+  padding: 1rem;
+  background: #f8f9fa;
+  border-top: 1px solid #ddd;
+  border-radius: 0 0 8px 8px;
+  color: #666;
+  font-size: 0.9rem;
+}`,
+        js: `// Card click ripple effect
+const cards = shadowRoot.querySelectorAll('.card');
+cards.forEach(function(card) {
+  card.addEventListener('click', function(e) {
+    // Don't ripple if clicking on interactive elements
+    if (e.target.closest('button, a, input, select, textarea')) {
+      return;
+    }
+
+    console.log('Card clicked');
+
+    // Simple scale animation
+    this.style.transform = 'scale(0.98)';
+    setTimeout(() => {
+      this.style.transform = 'scale(1)';
+    }, 150);
+  });
+});`,
+        usage: `{% bird card title="Simple Card" %}
+  <p>This is a basic card with a title prop.</p>
+{% endbird %}
+
+{% bird card %}
+  {% bird:slot header %}
+    <strong>🌟 Custom Header</strong>
+  {% endbird:slot %}
+
+  <p>This card uses named slots for more control.</p>
+
+  {% bird:slot footer %}
+    <small>Last updated: Today</small>
+  {% endbird:slot %}
+{% endbird %}`
+      },
+
+      modal: {
+        html: `{% bird:prop title="Modal" size="md" %}
+<div class="modal-backdrop" {{ attrs }} style="display: none;">
+  <div class="modal modal-{{ props.size }}">
+    <div class="modal-header">
+      <h4 class="modal-title">{{ props.title }}</h4>
+      <button type="button" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      {{ slot }}
+    </div>
+    {% if slots.footer %}
+      <div class="modal-footer">
+        {% bird:slot footer %}{% endbird:slot %}
+      </div>
+    {% endif %}
+  </div>
+</div>`,
+        css: `.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.modal-backdrop.show {
+  opacity: 1;
+}
+
+.modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.modal-backdrop.show .modal {
+  transform: scale(1);
+}
+
+.modal-sm { max-width: 300px; }
+.modal-md { max-width: 500px; }
+.modal-lg { max-width: 800px; }
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.modal-body {
+  padding: 1rem;
+}
+
+.modal-footer {
+  padding: 1rem;
+  border-top: 1px solid #ddd;
+  background: #f8f9fa;
+  text-align: right;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 0 4px;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.modal-trigger {
+  background: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 10px;
+}`,
+        js: `// Modal functionality
+const modals = shadowRoot.querySelectorAll('.modal-backdrop');
+
+// Create trigger buttons
+modals.forEach(function(modal, index) {
+  const trigger = document.createElement('button');
+  trigger.className = 'modal-trigger';
+  trigger.textContent = 'Open Modal ' + (index + 1);
+  trigger.addEventListener('click', function() {
+    modal.style.display = 'flex';
+    setTimeout(() => {
+      modal.classList.add('show');
+    }, 10);
+  });
+  modal.parentNode.insertBefore(trigger, modal);
+});
+
+// Close button functionality
+const closeButtons = shadowRoot.querySelectorAll('.modal-close');
+closeButtons.forEach(function(button) {
+  button.addEventListener('click', function() {
+    const modal = this.closest('.modal-backdrop');
+    modal.classList.remove('show');
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 300);
+  });
+});
+
+// Close on backdrop click
+modals.forEach(function(backdrop) {
+  backdrop.addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.classList.remove('show');
+      setTimeout(() => {
+        this.style.display = 'none';
+      }, 300);
+    }
+  });
+});`,
+        usage: `{% bird modal title="Confirmation" size="sm" %}
+  <p>Are you sure you want to delete this item?</p>
+
+  {% bird:slot footer %}
+    <button class="btn btn-secondary">Cancel</button>
+    <button class="btn btn-danger">Delete</button>
+  {% endbird:slot %}
+{% endbird %}
+
+{% bird modal title="Large Modal" size="lg" %}
+  <p>This is a larger modal with more content space.</p>
+  <p>You can put forms, tables, or other complex content here.</p>
+{% endbird %}`
+      }
+    };
+
+    async function init() {
+      const output = document.getElementById('output');
+
+      try {
+        console.log('🚀 Starting initialization...');
+        output.innerHTML = '<div class="status loading">📦 Loading Pyodide...</div>';
+        pyodide = await loadPyodide();
+
+        output.innerHTML = '<div class="status loading">📦 Installing packages...</div>';
+        await pyodide.loadPackage("micropip");
+        const micropip = pyodide.pyimport("micropip");
+        await micropip.install("django");
+        await micropip.install("django-bird");
+
+        output.innerHTML = '<div class="status loading">⚙️ Setting up Django...</div>';
+        pyodide.runPython(`
+import os
+from django.conf import settings
+
+# Create virtual filesystem
+os.makedirs('/templates/bird', exist_ok=True)
+
+if not settings.configured:
+    settings.configure(
+        DEBUG=True,
+        SECRET_KEY='playground-secret-key',
+        INSTALLED_APPS=[
+            'django.contrib.contenttypes',
+            'django.contrib.auth',
+            'django_bird',
+        ],
+        TEMPLATES=[{
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'DIRS': ['/templates'],
+            'APP_DIRS': True,
+            'OPTIONS': {
+                'builtins': ['django_bird.templatetags.django_bird'],
+            },
+        }],
+    )
+
+import django
+django.setup()
+
+from django.template import Template, Context
+import re
+
+def render_component(component_name, html_template, css_content, js_content, usage_template):
+    """Render a django-bird component"""
+    try:
+        # Extract all component names from usage
+        component_names = list(set(re.findall(r'{%\\s*bird\\s+(\\w+)', usage_template)))
+
+        # Write component files for each component found in usage
+        for name in component_names:
+            component_path = f'/templates/bird/{name}.html'
+            with open(component_path, 'w') as f:
+                f.write(html_template)
+
+        # Render the usage template
+        template = Template(usage_template)
+        context = Context({
+            'user': {'name': 'John Doe', 'is_authenticated': True},
+            'items': ['Item 1', 'Item 2', 'Item 3'],
+        })
+
+        html_result = template.render(context)
+
+        return {
+            'html': html_result,
+            'css': css_content,
+            'js': js_content
+        }
+
+    except Exception as e:
+        import traceback
+        error_msg = f"Error: {str(e)}\\n\\n{traceback.format_exc()}"
+        return {
+            'html': f'<div style="background: #fee; border: 1px solid #fcc; color: #c00; padding: 12px; border-radius: 4px; font-family: monospace; white-space: pre-wrap;">{error_msg}</div>',
+            'css': '',
+            'js': ''
+        }
+
+print("Django-bird playground ready!")
+        `);
+
+        // Initialize CodeMirror editors
+        initEditors();
+
+        // Load default example
+        loadExample('button');
+
+        // Enable controls
+        document.getElementById('run').disabled = false;
+        document.getElementById('run').textContent = '▶ Run Component';
+
+        output.innerHTML = '<div class="status success">✅ Ready! Choose an example or create your own component.</div>';
+
+      } catch (error) {
+        console.error('❌ Initialization failed:', error);
+        output.innerHTML = `<div class="status error">❌ Setup failed: ${error.message}</div>`;
+      }
+    }
+
+    function initEditors() {
+      htmlEditor = CodeMirror.fromTextArea(document.getElementById('html-editor'), {
+        mode: 'htmlmixed',
+        lineNumbers: true,
+        lineWrapping: true,
+        theme: 'default'
+      });
+
+      cssEditor = CodeMirror.fromTextArea(document.getElementById('css-editor'), {
+        mode: 'css',
+        lineNumbers: true,
+        lineWrapping: true,
+        theme: 'default'
+      });
+
+      jsEditor = CodeMirror.fromTextArea(document.getElementById('js-editor'), {
+        mode: 'javascript',
+        lineNumbers: true,
+        lineWrapping: true,
+        theme: 'default'
+      });
+
+      usageEditor = CodeMirror.fromTextArea(document.getElementById('usage-editor'), {
+        mode: 'htmlmixed',
+        lineNumbers: true,
+        lineWrapping: true,
+        theme: 'default'
+      });
+    }
+
+    function loadExample(name) {
+      const example = examples[name];
+      if (example) {
+        htmlEditor.setValue(example.html);
+        cssEditor.setValue(example.css);
+        jsEditor.setValue(example.js || '// No JavaScript needed for this component');
+        usageEditor.setValue(example.usage);
+        run();
+      }
+    }
+
+    function run() {
+      const output = document.getElementById('output');
+      const runBtn = document.getElementById('run');
+
+      const componentName = 'playground_component';
+      const htmlTemplate = htmlEditor.getValue();
+      const cssContent = cssEditor.getValue();
+      const jsContent = jsEditor.getValue();
+      const usageTemplate = usageEditor.getValue();
+
+      runBtn.disabled = true;
+      runBtn.textContent = 'Running...';
+
+      try {
+        pyodide.globals.set("comp_name", componentName);
+        pyodide.globals.set("html_tmpl", htmlTemplate);
+        pyodide.globals.set("css_content", cssContent);
+        pyodide.globals.set("js_content", jsContent);
+        pyodide.globals.set("usage_tmpl", usageTemplate);
+
+        const result = pyodide.runPython(`render_component(comp_name, html_tmpl, css_content, js_content, usage_tmpl)`);
+
+        // Parse the result as a dictionary
+        const parts = result.toJs();
+
+        // Create or update the bird-output component
+        let birdOutput = output.querySelector('bird-output');
+        if (!birdOutput) {
+          output.innerHTML = '<div class="status success">✅ Component rendered successfully!</div><bird-output></bird-output>';
+          birdOutput = output.querySelector('bird-output');
+        }
+
+        // Render the component with Shadow DOM
+        birdOutput.render(parts.get('html'), parts.get('css'), parts.get('js'));
+
+      } catch (error) {
+        output.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+      } finally {
+        runBtn.disabled = false;
+        runBtn.textContent = '▶ Run Component';
+      }
+    }
+
+    // Tab switching
+    function switchTab(tabName) {
+      // Remove active class from all tabs and content
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      // Add active class to selected tab and content
+      document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+      document.getElementById(`${tabName}-tab`).classList.add('active');
+
+      // Refresh CodeMirror editors when switching to them
+      if (tabName === 'html') htmlEditor.refresh();
+      if (tabName === 'css') cssEditor.refresh();
+      if (tabName === 'js') jsEditor.refresh();
+      if (tabName === 'usage') usageEditor.refresh();
+    }
+
+    // Event listeners
+    document.getElementById('run').addEventListener('click', run);
+
+    document.getElementById('clear-output').addEventListener('click', () => {
+      document.getElementById('output').innerHTML = '<div class="status">Output cleared.</div>';
+    });
+
+    // Tab click handlers
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        switchTab(tabName);
+      });
+    });
+
+    // Example buttons
+    document.querySelectorAll('.example').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const example = btn.dataset.example;
+        loadExample(example);
+      });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        run();
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>

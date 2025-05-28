@@ -1,0 +1,21 @@
+{
+	"name": "django-bird-playground",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"format": "biome check --write",
+		"lint": "biome check",
+		"start": "wrangler dev"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@types/bun": "latest",
+		"wrangler": "^4.17.0"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"trustedDependencies": ["@biomejs/biome"]
+}
