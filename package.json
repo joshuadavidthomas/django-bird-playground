@@ -6,11 +6,9 @@
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"browser": "./dist/index.js",
-	"files": [
-		"dist"
-	],
+	"files": ["dist"],
 	"scripts": {
-		"build": "vite build --config vite.worker.config.ts && vite build && bunx tsc --project tsconfig.build.json",
+		"build": "rolldown -c && bunx tsc --project tsconfig.build.json",
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"format": "biome check --write",
@@ -21,7 +19,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@types/bun": "latest",
-		"vite": "^6.3.5",
+		"rolldown": "^1.0.0-beta.10",
 		"wrangler": "^4.17.0"
 	},
 	"peerDependencies": {

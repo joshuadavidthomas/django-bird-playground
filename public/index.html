@@ -730,14 +730,14 @@ modals.forEach(function(backdrop) {
       try {
         console.log('🚀 Starting initialization...');
 
-        // Wait for DjangoSandbox to be available
-        if (!window.DjangoSandbox) {
-          output.innerHTML = '<div class="status error">❌ DjangoSandbox not loaded</div>';
+        // Wait for Django to be available
+        if (!window.Django) {
+          output.innerHTML = '<div class="status error">❌ Django not loaded</div>';
           return;
         }
 
-        // Setup event listeners for DjangoSandbox
-        window.DjangoSandbox.addEventListener('loading', (e) => {
+        // Setup event listeners for Django
+        window.Django.addEventListener('loading', (e) => {
           const stepMessages = {
             'pyodide': '📦 Loading Pyodide...',
             'packages': '📦 Installing packages...',
@@ -747,12 +747,12 @@ modals.forEach(function(backdrop) {
           output.innerHTML = `<div class="status loading">${message}</div>`;
         });
 
-        window.DjangoSandbox.addEventListener('error', (e) => {
+        window.Django.addEventListener('error', (e) => {
           console.error('❌ Django setup failed:', e.detail.error);
           output.innerHTML = `<div class="status error">❌ Setup failed: ${e.detail.message}</div>`;
         });
 
-        window.DjangoSandbox.addEventListener('ready', async () => {
+        window.Django.addEventListener('ready', async () => {
           // Setup django-bird specific functionality
           await setupDjangoBird();
 
@@ -769,8 +769,8 @@ modals.forEach(function(backdrop) {
           output.innerHTML = '<div class="status success">✅ Ready! Choose an example or create your own component.</div>';
         });
 
-        // Initialize DjangoSandbox
-        await window.DjangoSandbox.init();
+        // Initialize Django
+        await window.Django.init();
 
       } catch (error) {
         console.error('❌ Initialization failed:', error);
@@ -780,10 +780,10 @@ modals.forEach(function(backdrop) {
 
     async function setupDjangoBird() {
       // Install django-bird first
-      await window.DjangoSandbox.installPackage('django-bird');
+      await window.Django.installPackage('django-bird');
 
       // Setup django-bird specific functionality
-      await window.DjangoSandbox.runPython(`
+      await window.Django.runPython(`
 import os
 import re
 
@@ -913,20 +913,18 @@ print("Django-bird playground ready!")
       runBtn.textContent = 'Running...';
 
       try {
-        // Use the worker-based runPython method with proper string escaping
-        const result = await window.DjangoSandbox.runPython(`
+        // Clean API: pass data directly to Python!
+        const result = await window.Django.runPython(`
 import json
-import base64
-
-# Encode strings to avoid quote issues
-html_b64 = base64.b64decode('${btoa(htmlTemplate)}').decode('utf-8')
-css_b64 = base64.b64decode('${btoa(cssContent)}').decode('utf-8') 
-js_b64 = base64.b64decode('${btoa(jsContent)}').decode('utf-8')
-usage_b64 = base64.b64decode('${btoa(usageTemplate)}').decode('utf-8')
-
-result = render_component('${componentName}', html_b64, css_b64, js_b64, usage_b64)
+result = render_component(component_name, html_template, css_content, js_content, usage_template)
 json.dumps(result)
-        `);
+        `, {
+          html_template: htmlTemplate,
+          css_content: cssContent,
+          js_content: jsContent,
+          usage_template: usageTemplate,
+          component_name: componentName
+        });
 
         // Parse the result as JSON
         const parts = JSON.parse(result);
@@ -997,16 +995,16 @@ json.dumps(result)
       }
     });
 
-    // Wait for DjangoSandbox to be available, then init
-    function waitForDjangoSandbox() {
-      if (window.DjangoSandbox) {
+    // Wait for Django to be available, then init
+    function waitForDjango() {
+      if (window.Django) {
         init();
       } else {
-        setTimeout(waitForDjangoSandbox, 100);
+        setTimeout(waitForDjango, 100);
       }
     }
 
-    waitForDjangoSandbox();
+    waitForDjango();
   </script>
 </body>
 </html>
