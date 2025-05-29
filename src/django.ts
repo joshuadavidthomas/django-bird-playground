@@ -663,21 +663,30 @@ class DjangoPlayground {
 	}
 
 	private async renderDOMTemplates(): Promise<void> {
+		console.log('DEBUG: Starting renderDOMTemplates');
 		const scanResult = this.scanDOMForTemplates();
+		console.log('DEBUG: Scan result:', scanResult);
 		
 		if (!scanResult.success) {
 			console.warn('DOM scan had errors:', scanResult.errors);
 		}
 
+		console.log('DEBUG: About to render', scanResult.elements.length, 'elements');
+		console.log('DEBUG: scanResult.elements is array?', Array.isArray(scanResult.elements));
+		console.log('DEBUG: scanResult.elements:', scanResult.elements);
+		
 		// Render each template
 		for (const elementData of scanResult.elements) {
 			try {
+				console.log('DEBUG: Rendering element:', elementData.element);
 				await this.renderDOMElement(elementData);
+				console.log('DEBUG: Successfully rendered element');
 			} catch (error) {
 				console.error('Failed to render DOM template:', error);
 				this.showElementError(elementData.element, error as Error, elementData.errorMessage);
 			}
 		}
+		console.log('DEBUG: Finished renderDOMTemplates');
 	}
 
 	private async renderDOMElement(elementData: DomElementData): Promise<void> {
