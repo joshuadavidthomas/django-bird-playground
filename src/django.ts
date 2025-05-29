@@ -192,10 +192,10 @@ const renderTemplate = async (
 			},
 		);
 
-		if (result.get("success")) {
-			return result.get("result");
+		if (result.success) {
+			return result.result;
 		} else {
-			throw new TemplateRenderError(result.get("error"));
+			throw new TemplateRenderError(result.error);
 		}
 	} catch (error) {
 		if (error instanceof TemplateRenderError) {

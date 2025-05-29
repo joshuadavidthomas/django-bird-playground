@@ -197,7 +197,9 @@ async function renderTemplate(
 		// Clean up globals to prevent memory leaks in singleton pattern
 		cleanupGlobals();
 		
-		return result.toJs();
+		// Convert PyProxy to plain JavaScript object for serialization
+		const jsResult = result.toJs({ dict_converter: Object.fromEntries });
+		return jsResult;
 	} catch (error) {
 		// Clean up even on error
 		cleanupGlobals();
