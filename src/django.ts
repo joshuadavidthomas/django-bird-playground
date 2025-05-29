@@ -505,8 +505,11 @@ class DjangoPlayground {
 			await this.waitForReady();
 
 			// Install collected packages if any
+			console.log('DEBUG: uniquePackages:', uniquePackages);
 			if (uniquePackages.length > 0) {
+				console.log('DEBUG: Installing packages:', uniquePackages);
 				const installResult = await installPackages(this.state, uniquePackages);
+				console.log('DEBUG: Package installation result:', installResult);
 				if (!installResult.success && installResult.errors?.length) {
 					console.warn('Some packages failed to install:', installResult.errors);
 					if (this.config.onError) {
@@ -516,17 +519,23 @@ class DjangoPlayground {
 					}
 				}
 			}
+			console.log('DEBUG: Package installation phase completed');
 
 			// Auto-render templates if enabled
 			if (this.config.autoRender) {
+				console.log('DEBUG: About to call renderDOMTemplates()');
 				await this.renderDOMTemplates();
+				console.log('DEBUG: renderDOMTemplates() completed');
 			}
 
+			console.log('DEBUG: Setting initialized = true');
 			this.initialized = true;
 			
 			if (this.config.onReady) {
+				console.log('DEBUG: Calling onReady callback');
 				this.config.onReady();
 			}
+			console.log('DEBUG: doInitialize completed successfully');
 		} catch (error) {
 			this.initPromise = null;
 			const djangoError = new DjangoPlaygroundError(
