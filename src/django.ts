@@ -567,12 +567,16 @@ class DjangoPlayground {
 		try {
 			// Find all elements with Django template attributes
 			const templateElements = Array.from(document.querySelectorAll(`[${DOM_ATTRIBUTES.TEMPLATE}]`));
+			console.log('DEBUG: Found template elements:', templateElements.length);
 			
 			for (const element of templateElements) {
 				try {
+					console.log('DEBUG: Processing element:', element);
 					const elementData = this.extractElementData(element as HTMLElement);
+					console.log('DEBUG: Element data:', elementData);
 					elements.push(elementData);
 					if (elementData.packages && elementData.packages.length > 0) {
+						console.log('DEBUG: Adding packages:', elementData.packages);
 						packages.push(...elementData.packages);
 					}
 				} catch (error) {
@@ -584,13 +588,17 @@ class DjangoPlayground {
 
 			// Also scan for standalone package declarations
 			const packageElements = Array.from(document.querySelectorAll(`[${DOM_ATTRIBUTES.PACKAGES}]`));
+			console.log('DEBUG: Found package elements:', packageElements.length);
 			for (const element of packageElements) {
 				if (!element.hasAttribute(DOM_ATTRIBUTES.TEMPLATE)) {
 					try {
 						const packagesAttr = element.getAttribute(DOM_ATTRIBUTES.PACKAGES);
+						console.log('DEBUG: Package attribute:', packagesAttr);
 						if (packagesAttr) {
 							const elementPackages = JSON.parse(packagesAttr);
+							console.log('DEBUG: Parsed packages:', elementPackages);
 							if (Array.isArray(elementPackages)) {
+								console.log('DEBUG: Adding standalone packages:', elementPackages);
 								packages.push(...elementPackages);
 							}
 						}
