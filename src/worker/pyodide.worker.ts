@@ -196,7 +196,7 @@ async function renderTemplate(
 ): Promise<TemplateRenderResult> {
 	try {
 		pyodide.globals.set("template_str", templateString);
-		pyodide.globals.set("context_dict", context);
+		pyodide.globals.set("context_dict", pyodide.toPy(context));
 
 		const result = pyodide.runPython(
 			"render_template(template_str, context_dict)",
