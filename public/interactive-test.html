@@ -182,7 +182,7 @@
             color: #1565c0;
         }
 
-        .result-container {
+        .template-container {
             min-height: 50px;
             border: 2px dashed #dee2e6;
             border-radius: 4px;
@@ -191,25 +191,27 @@
             transition: all 0.3s;
         }
 
-        .result-container.loading {
+        /* Django Playground state classes - these match what the library adds */
+        .django-loading {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
             animation: loading 1.5s infinite;
-            border-color: #fd7e14;
+            border-color: #fd7e14 !important;
+            border-style: solid !important;
             color: #666;
             font-style: italic;
         }
 
-        .result-container.success {
+        .django-rendered {
             background: #f8fff9;
-            border-color: #28a745;
-            border-style: solid;
+            border-color: #28a745 !important;
+            border-style: solid !important;
         }
 
-        .result-container.error {
-            background: #fff5f5;
-            border-color: #dc3545;
-            border-style: solid;
+        .django-error {
+            background: #fff5f5 !important;
+            border-color: #dc3545 !important;
+            border-style: solid !important;
             color: #721c24;
         }
 
@@ -218,15 +220,15 @@
             100% { background-position: -200% 0; }
         }
 
-        .loading::before {
+        .django-loading::before {
             content: "⏳ ";
         }
 
-        .success::before {
+        .django-rendered::before {
             content: "✅ ";
         }
 
-        .error::before {
+        .django-error::before {
             content: "❌ ";
         }
 
@@ -264,6 +266,15 @@
         .log-entry.info {
             color: #9cdcfe;
         }
+
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -278,6 +289,10 @@
         <div id="initStatus" class="status" style="display: none;"></div>
     </div>
 
+    <div class="note">
+        <strong>Note:</strong> Click "Initialize Django Playground" first, then click individual "▶ Run" buttons to render each template example independently.
+    </div>
+
     <!-- Basic Examples -->
     <h2 class="section-title">Basic Template Examples</h2>
 
@@ -289,8 +304,9 @@
         <div class="example-body">
             <div class="template-source">Hello {{ name }}! Welcome to {{ year }}.</div>
             <div class="context-display">Context: {"name": "World", "year": 2025}</div>
-            <div class="result-container" data-result="basic-variables">
-                Click "Run" to render this template
+            <div class="template-container" 
+                 data-django-template='{"name": "World", "year": 2025}'>
+                Hello {{ name }}! Welcome to {{ year }}.
             </div>
         </div>
     </div>
@@ -308,8 +324,14 @@
 {% endfor %}
 </ul></div>
             <div class="context-display">Context: {"title": "Fruits", "items": ["Apple", "Banana", "Cherry"]}</div>
-            <div class="result-container" data-result="template-loops">
-                Click "Run" to render this template
+            <div class="template-container" 
+                 data-django-template='{"title": "Fruits", "items": ["Apple", "Banana", "Cherry"]}'>
+                <h4>{{ title }}</h4>
+                <ul>
+                {% for item in items %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+                </ul>
             </div>
         </div>
     </div>
@@ -330,8 +352,17 @@
     <p>No new messages.</p>
 {% endif %}</div>
             <div class="context-display">Context: {"user": {"name": "Alice", "is_admin": true}, "message_count": 5}</div>
-            <div class="result-container" data-result="conditionals">
-                Click "Run" to render this template
+            <div class="template-container" 
+                 data-django-template='{"user": {"name": "Alice", "is_admin": true}, "message_count": 5}'>
+                <p>Welcome, {{ user.name }}!</p>
+                {% if user.is_admin %}
+                    <p><strong>Admin Panel Available</strong></p>
+                {% endif %}
+                {% if message_count > 0 %}
+                    <p>You have {{ message_count }} new messages.</p>
+                {% else %}
+                    <p>No new messages.</p>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -349,9 +380,13 @@
 <p>{{ description|capfirst }}</p>
 <small>Length: {{ description|length }} characters</small>
 <p>Uppercase: {{ title|upper }}</p></div>
-            <div class="context-display">Context: {"title": "django playground", "description": "a tool for testing django templates in the browser"}</div>
-            <div class="result-container" data-result="filters">
-                Click "Run" to render this template
+            <div class="context-display">Context: {"title": "django playground", "description": "a tool for testing django templates"}</div>
+            <div class="template-container" 
+                 data-django-template='{"title": "django playground", "description": "a tool for testing django templates"}'>
+                <h4>{{ title|title }}</h4>
+                <p>{{ description|capfirst }}</p>
+                <small>Length: {{ description|length }} characters</small>
+                <p>Uppercase: {{ title|upper }}</p>
             </div>
         </div>
     </div>
@@ -374,9 +409,21 @@
     </p>
 </div>
 {% endfor %}</div>
-            <div class="context-display">Context: {"products": [{"name": "Laptop", "price": 999.99, "tags": ["electronics", "computers"]}, {"name": "Book", "price": 29.99, "tags": ["education", "reading"]}], "currency": "USD"}</div>
-            <div class="result-container" data-result="complex-data">
-                Click "Run" to render this template
+            <div class="context-display">Context: {"products": [{"name": "Laptop", "price": 999.99, "tags": ["electronics"]}, {"name": "Book", "price": 29.99, "tags": ["education"]}], "currency": "USD"}</div>
+            <div class="template-container" 
+                 data-django-template='{"products": [{"name": "Laptop", "price": 999.99, "tags": ["electronics", "computers"]}, {"name": "Book", "price": 29.99, "tags": ["education", "reading"]}], "currency": "USD"}'>
+                <h4>Products ({{ currency }})</h4>
+                {% for product in products %}
+                <div style="border: 1px solid #ddd; margin: 10px 0; padding: 10px; border-radius: 4px;">
+                    <h5>{{ product.name }}</h5>
+                    <p>Price: ${{ product.price }}</p>
+                    <p>Tags: 
+                    {% for tag in product.tags %}
+                        <span style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin: 2px;">{{ tag }}</span>
+                    {% endfor %}
+                    </p>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -392,10 +439,13 @@
         <div class="example-body">
             <div class="template-source">This works: {{ name }}
 This is undefined: {{ undefined_variable }}
-This also works: {{ age|default:"Unknown" }}</div>
-            <div class="context-display">Context: {"name": "Test", "age": null}</div>
-            <div class="result-container" data-result="undefined-var">
-                Click "Run" to render this template
+This has default: {{ age|default:"Unknown" }}</div>
+            <div class="context-display">Context: {"name": "Test"}</div>
+            <div class="template-container" 
+                 data-django-template='{"name": "Test"}'>
+                This works: {{ name }}<br>
+                This is undefined: {{ undefined_variable }}<br>
+                This has default: {{ age|default:"Unknown" }}
             </div>
         </div>
     </div>
@@ -409,8 +459,10 @@ This also works: {{ age|default:"Unknown" }}</div>
             <div class="template-source">{% if name %}
     <p>This should fail due to missing endif</p></div>
             <div class="context-display">Context: {"name": "Test"}</div>
-            <div class="result-container" data-result="syntax-error">
-                Click "Run" to render this template
+            <div class="template-container" 
+                 data-django-template='{"name": "Test"}'>
+                {% if name %}
+                    <p>This should fail due to missing endif</p>
             </div>
         </div>
     </div>
@@ -429,74 +481,6 @@ This also works: {{ age|default:"Unknown" }}</div>
         const logsContainer = document.getElementById('logs');
         
         let initialized = false;
-        
-        // Template data for each example
-        const examples = {
-            'basic-variables': {
-                template: 'Hello {{ name }}! Welcome to {{ year }}.',
-                context: { name: 'World', year: 2025 }
-            },
-            'template-loops': {
-                template: `<h4>{{ title }}</h4>
-<ul>
-{% for item in items %}
-    <li>{{ item }}</li>
-{% endfor %}
-</ul>`,
-                context: { title: 'Fruits', items: ['Apple', 'Banana', 'Cherry'] }
-            },
-            'conditionals': {
-                template: `<p>Welcome, {{ user.name }}!</p>
-{% if user.is_admin %}
-    <p><strong>Admin Panel Available</strong></p>
-{% endif %}
-{% if message_count > 0 %}
-    <p>You have {{ message_count }} new messages.</p>
-{% else %}
-    <p>No new messages.</p>
-{% endif %}`,
-                context: { user: { name: 'Alice', is_admin: true }, message_count: 5 }
-            },
-            'filters': {
-                template: `<h4>{{ title|title }}</h4>
-<p>{{ description|capfirst }}</p>
-<small>Length: {{ description|length }} characters</small>
-<p>Uppercase: {{ title|upper }}</p>`,
-                context: { title: 'django playground', description: 'a tool for testing django templates in the browser' }
-            },
-            'complex-data': {
-                template: `<h4>Products ({{ currency }})</h4>
-{% for product in products %}
-<div style="border: 1px solid #ddd; margin: 10px 0; padding: 10px; border-radius: 4px;">
-    <h5>{{ product.name }}</h5>
-    <p>Price: ${{ product.price }}</p>
-    <p>Tags: 
-    {% for tag in product.tags %}
-        <span style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin: 2px;">{{ tag }}</span>
-    {% endfor %}
-    </p>
-</div>
-{% endfor %}`,
-                context: { 
-                    products: [
-                        { name: 'Laptop', price: 999.99, tags: ['electronics', 'computers'] },
-                        { name: 'Book', price: 29.99, tags: ['education', 'reading'] }
-                    ], 
-                    currency: 'USD' 
-                }
-            },
-            'undefined-var': {
-                template: `This works: {{ name }}
-This is undefined: {{ undefined_variable }}
-This also works: {{ age|default:"Unknown" }}`,
-                context: { name: 'Test', age: null }
-            },
-            'syntax-error': {
-                template: `{% if name %}
-    <p>This should fail due to missing endif</p>`,
-                context: { name: 'Test' }
-            }
-        };
         
         function log(message, type = 'info') {
             const timestamp = new Date().toLocaleTimeString();
@@ -523,7 +507,7 @@ This also works: {{ age|default:"Unknown" }}`,
             try {
                 await DjangoPlayground.init({
                     packages: ['django'],
-                    autoRender: false,
+                    autoRender: false, // We'll render manually with individual buttons
                     onProgress: (step, percent, message) => {
                         log(`Progress: ${step} (${percent}%) - ${message}`);
                         updateInitStatus(`${message} (${percent}%)`, 'loading');
@@ -558,11 +542,13 @@ This also works: {{ age|default:"Unknown" }}`,
             
             const button = event.target;
             const exampleId = button.dataset.example;
-            const resultContainer = document.querySelector(`[data-result="${exampleId}"]`);
-            const exampleData = examples[exampleId];
             
-            if (!exampleData) {
-                log(`❌ Unknown example: ${exampleId}`, 'error');
+            // Find the corresponding template container
+            const exampleDiv = button.closest('.example');
+            const templateContainer = exampleDiv.querySelector('.template-container');
+            
+            if (!templateContainer) {
+                log(`❌ No template container found for example: ${exampleId}`, 'error');
                 return;
             }
             
@@ -571,29 +557,34 @@ This also works: {{ age|default:"Unknown" }}`,
             button.textContent = '⏳ Running...';
             button.className = 'run-btn loading';
             
-            // Update result container
-            resultContainer.className = 'result-container loading';
-            resultContainer.textContent = 'Rendering template...';
-            
             log(`Running example: ${exampleId}`);
             
             try {
-                const result = await DjangoPlayground.render(
-                    exampleData.template,
-                    exampleData.context
-                );
+                // Extract template and context from the HTML element
+                const template = templateContainer.innerHTML.trim();
+                const contextAttr = templateContainer.getAttribute('data-django-template');
+                const context = contextAttr ? JSON.parse(contextAttr) : {};
                 
-                // Success
-                resultContainer.className = 'result-container success';
-                resultContainer.innerHTML = result;
+                log(`Template: ${template.substring(0, 50)}...`);
+                log(`Context: ${JSON.stringify(context)}`);
+                
+                const result = await DjangoPlayground.render(template, context);
+                
+                // Success - update the template container
+                templateContainer.innerHTML = result;
+                templateContainer.classList.remove('django-loading', 'django-error');
+                templateContainer.classList.add('django-rendered');
+                
                 button.textContent = '✅ Success';
                 button.className = 'run-btn success';
                 log(`✅ ${exampleId} rendered successfully`, 'success');
                 
             } catch (error) {
-                // Error
-                resultContainer.className = 'result-container error';
-                resultContainer.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                // Error - show error in container
+                templateContainer.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                templateContainer.classList.remove('django-loading', 'django-rendered');
+                templateContainer.classList.add('django-error');
+                
                 button.textContent = '❌ Failed';
                 button.className = 'run-btn error';
                 log(`❌ ${exampleId} failed: ${error.message}`, 'error');
