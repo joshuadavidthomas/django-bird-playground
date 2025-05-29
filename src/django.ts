@@ -664,9 +664,15 @@ class DjangoPlayground {
 			}
 		}
 
+		// Decode HTML entities from template content
+		const rawTemplate = element.innerHTML;
+		const tempDiv = document.createElement('div');
+		tempDiv.innerHTML = rawTemplate;
+		const decodedTemplate = tempDiv.textContent || tempDiv.innerText || '';
+
 		return {
 			element,
-			template: element.innerHTML,
+			template: decodedTemplate,
 			context,
 			packages,
 			loadingMessage: element.getAttribute(DOM_ATTRIBUTES.LOADING) || 'Rendering Django template...',
