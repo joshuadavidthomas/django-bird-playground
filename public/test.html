@@ -624,6 +624,11 @@ const templates = [
                     }
                 });
                 
+                // Enable buttons after successful initialization
+                document.getElementById('renderDOMBtn').disabled = false;
+                document.getElementById('scanDOMBtn').disabled = false;
+                document.getElementById('cleanupBtn').disabled = false;
+                document.getElementById('testAPIBtn').disabled = false;
                 document.getElementById('initBtn').disabled = true;
             } catch (error) {
                 log(`❌ Initialization failed: ${error.message}`, 'error');

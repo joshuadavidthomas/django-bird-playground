@@ -522,10 +522,13 @@ class DjangoPlayground {
 			console.log('DEBUG: Package installation phase completed');
 
 			// Auto-render templates if enabled
+			console.log('DEBUG: this.config.autoRender =', this.config.autoRender);
 			if (this.config.autoRender) {
 				console.log('DEBUG: About to call renderDOMTemplates()');
 				await this.renderDOMTemplates();
 				console.log('DEBUG: renderDOMTemplates() completed');
+			} else {
+				console.log('DEBUG: autoRender is false, skipping renderDOMTemplates()');
 			}
 
 			console.log('DEBUG: Setting initialized = true');
