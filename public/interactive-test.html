@@ -560,25 +560,10 @@ This has default: {{ age|default:"Unknown" }}</div>
             log(`Running example: ${exampleId}`);
             
             try {
-                // Extract template and context from the HTML element
-                const rawTemplate = templateContainer.innerHTML.trim();
-                const contextAttr = templateContainer.getAttribute('data-django-template');
-                const context = contextAttr ? JSON.parse(contextAttr) : {};
+                // Use the library's built-in renderElement method - dead simple! 🎉
+                log(`Rendering element using DjangoPlayground.renderElement()...`);
                 
-                // Decode HTML entities since we're manually extracting from innerHTML
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = rawTemplate;
-                const template = tempDiv.textContent || tempDiv.innerText || '';
-                
-                log(`Template: ${template.substring(0, 50)}...`);
-                log(`Context: ${JSON.stringify(context)}`);
-                
-                const result = await DjangoPlayground.render(template, context);
-                
-                // Success - update the template container
-                templateContainer.innerHTML = result;
-                templateContainer.classList.remove('django-loading', 'django-error');
-                templateContainer.classList.add('django-rendered');
+                await DjangoPlayground.renderElement(templateContainer);
                 
                 button.textContent = '✅ Success';
                 button.className = 'run-btn success';

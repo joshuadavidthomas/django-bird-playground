@@ -457,6 +457,17 @@ class DjangoPlayground {
 		await instance.renderDOMTemplates();
 	}
 
+	public static async renderElement(element: HTMLElement): Promise<void> {
+		const instance = DjangoPlayground.getInstance();
+		await instance.ensureInitialized();
+		
+		// Use the library's built-in DOM processing (with HTML entity decoding)
+		const elementData = instance.extractElementData(element);
+		
+		// Render the element using existing DOM rendering logic
+		await instance.renderDOMElement(elementData);
+	}
+
 	private async initialize(options: InitOptions): Promise<void> {
 		if (this.initialized) {
 			return;
@@ -664,11 +675,11 @@ class DjangoPlayground {
 			}
 		}
 
-		// Decode HTML entities from template content
+		// Decode HTML entities from template content while preserving HTML tags
 		const rawTemplate = element.innerHTML;
-		const tempDiv = document.createElement('div');
-		tempDiv.innerHTML = rawTemplate;
-		const decodedTemplate = tempDiv.textContent || tempDiv.innerText || '';
+		const textarea = document.createElement('textarea');
+		textarea.innerHTML = rawTemplate;
+		const decodedTemplate = textarea.value;
 
 		return {
 			element,
