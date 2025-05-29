@@ -318,7 +318,7 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
 				break;
 
 			case WORKER_MESSAGE_TYPES.INSTALL_PACKAGES:
-				result = await installPackages(data.packageNames);
+				result = await installPackages(data.packages);
 				break;
 
 			case WORKER_MESSAGE_TYPES.RENDER_TEMPLATE:
