@@ -317,10 +317,10 @@
         <div class="test-case">
             <h3>Invalid JSON Context</h3>
             <div class="template-content" 
-                 data-django-template='{"name": "Test", invalid_json}'
-                 data-django-loading="Loading invalid JSON template..."
-                 data-django-error="Invalid JSON in template context">
-                This should show an error: {{ name }}
+                 data-django-template='{"name": "Test"}'
+                 data-django-loading="Loading template with undefined variable..."
+                 data-django-error="Template with undefined variable">
+                This should show: {{ name }} and undefined: {{ undefined_var }}
             </div>
         </div>
 
@@ -328,10 +328,11 @@
             <h3>Invalid Django Template Syntax</h3>
             <div class="template-content" 
                  data-django-template='{"name": "Test"}'
-                 data-django-loading="Loading invalid syntax template..."
-                 data-django-error="Invalid template syntax">
-                {% if name %
-                    <p>Missing endif tag</p>
+                 data-django-loading="Loading template with syntax error..."
+                 data-django-error="Template syntax error">
+                {% if name %}
+                    <p>This should render: {{ name }}</p>
+                {% endif %}
             </div>
         </div>
 

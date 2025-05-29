@@ -39,14 +39,9 @@ def render_template(template_string, context_dict=None):
         context_dict = {}
 
     try:
-        print(f"DEBUG: Template string: {repr(template_string)}")
-        print(f"DEBUG: Context dict: {repr(context_dict)}")
-        
         template = Template(template_string)
         context = Context(context_dict)
         rendered = template.render(context)
-        
-        print(f"DEBUG: Rendered result: {repr(rendered)}")
         
         return {
             'success': True,
@@ -54,7 +49,6 @@ def render_template(template_string, context_dict=None):
             'error': None
         }
     except Exception as e:
-        print(f"DEBUG: Exception occurred: {str(e)}")
         return {
             'success': False,
             'result': None,
