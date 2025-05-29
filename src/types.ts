@@ -1,9 +1,3 @@
-export interface DjangoConfig {
-	packages?: string[];
-	autoInit?: boolean;
-}
-
-// Const objects for type safety instead of string literals
 export const WORKER_MESSAGE_TYPES = {
 	INIT: "init",
 	RENDER_TEMPLATE: "renderTemplate",

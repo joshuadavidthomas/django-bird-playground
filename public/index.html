@@ -4,7 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Django Bird Playground</title>
-  <script src="../dist/index.js" data-packages="django-bird" data-auto-init="false"></script>
+  <script type="module">
+    import { createDjango } from '../dist/index.js'
+    
+    // Create django instance with packages
+    const django = createDjango({ 
+      packages: ['django-bird']
+    })
+    
+    // Make it globally available for the existing code
+    window.Django = django
+    globalThis.Django = django
+    
+    // Auto-initialize and start the app
+    django.init().then(() => {
+      // Django is ready, start the app
+      init()
+    }).catch(error => {
+      console.error('Django initialization failed:', error)
+    })
+  </script>
 
   <!-- CodeMirror -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
@@ -995,16 +1014,7 @@ json.dumps(result)
       }
     });
 
-    // Wait for Django to be available, then init
-    function waitForDjango() {
-      if (Django) {
-        init();
-      } else {
-        setTimeout(waitForDjango, 100);
-      }
-    }
-
-    waitForDjango();
+    // Django initialization is now handled by the module script
   </script>
 </body>
 </html>

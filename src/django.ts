@@ -1,13 +1,18 @@
 import type {
-	DjangoConfig,
 	ErrorEvent,
 	EventType,
 	LoadingEvent,
 	ReadyEvent,
 	WorkerMessageType,
 } from "./types";
+
 import { EVENT_TYPES, FILE_EXTENSIONS, WORKER_MESSAGE_TYPES } from "./types";
 import type { WorkerMessage, WorkerResponse } from "./worker/pyodide.worker";
+
+interface DjangoConfig {
+	packages?: string[];
+	autoInit?: boolean;
+}
 
 interface DjangoState {
 	config: Required<DjangoConfig>;
@@ -42,17 +47,11 @@ const createInitialState = (config: DjangoConfig = {}): DjangoState => ({
 });
 
 const createWorkerUrl = (): string => {
-	const scripts = document.getElementsByTagName("script");
-	for (let i = 0; i < scripts.length; i++) {
-		const script = scripts[i];
-		if (script?.src && script.src.includes(FILE_EXTENSIONS.INDEX_JS)) {
-			return script.src.replace(
-				FILE_EXTENSIONS.INDEX_JS,
-				FILE_EXTENSIONS.WORKER_JS,
-			);
-		}
-	}
-	throw new Error("Could not determine worker URL");
+	// For ES modules, we can't detect script src, so use relative path
+	// Assume worker is in same directory as the main module
+	const currentPath = new URL(import.meta.url).pathname;
+	const basePath = currentPath.substring(0, currentPath.lastIndexOf("/") + 1);
+	return basePath + FILE_EXTENSIONS.WORKER_JS;
 };
 
 const setupWorkerListeners = (state: DjangoState, worker: Worker): void => {
@@ -197,9 +196,13 @@ const installPackage = async (
 	state: DjangoState,
 	packageName: string,
 ): Promise<void> => {
-	const result = await sendMessage(state, WORKER_MESSAGE_TYPES.INSTALL_PACKAGE, {
-		packageName,
-	});
+	const result = await sendMessage(
+		state,
+		WORKER_MESSAGE_TYPES.INSTALL_PACKAGE,
+		{
+			packageName,
+		},
+	);
 	if (!result.success) {
 		throw new Error(`Failed to install package: ${packageName}`);
 	}
@@ -266,7 +269,7 @@ const removeEventListener = (
 	state.eventTarget.removeEventListener(type, listener, options);
 };
 
-export interface DjangoInstance {
+interface DjangoInstance {
 	init(): Promise<void>;
 	renderTemplate(
 		templateString: string,
@@ -292,7 +295,7 @@ export interface DjangoInstance {
 	destroy(): void;
 }
 
-export const createDjango = (config?: DjangoConfig): DjangoInstance => {
+const createDjango = (config?: DjangoConfig): DjangoInstance => {
 	const state = createInitialState(config);
 
 	return {
@@ -322,3 +325,4 @@ export const createDjango = (config?: DjangoConfig): DjangoInstance => {
 	};
 };
 
+export { type DjangoConfig, type DjangoInstance, createDjango };

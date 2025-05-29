@@ -1,19 +1,14 @@
 import { defineConfig } from 'rolldown';
 
 export default defineConfig([
-  // Main bundle
+  // Main ES module
   {
     input: 'src/index.ts',
     output: {
-      format: 'iife',
+      format: 'es',
       file: 'dist/index.js',
-      name: 'DjangoSandbox',
-      globals: {
-        pyodide: 'pyodide'
-      },
       minify: true,
     },
-    external: ['pyodide'],
     treeshake: {
       preset: 'smallest'
     }

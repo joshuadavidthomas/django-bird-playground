@@ -3,7 +3,7 @@ import {
 	LOADING_STEPS,
 	WORKER_MESSAGE_TYPES,
 	type WorkerMessageType,
-} from "../types/index";
+} from "../types";
 const djangoSetupPy = `import os
 from django.conf import settings
 import django
@@ -14,7 +14,7 @@ def setup_django():
     """Configure and setup Django"""
     # Create template directories
     os.makedirs('/templates', exist_ok=True)
-    
+
     # Configure Django with template directories
     if not settings.configured:
         settings.configure(
@@ -26,7 +26,7 @@ def setup_django():
                 'OPTIONS': {},
             }],
         )
-    
+
     django.setup()
     print("Django setup complete!")
 
@@ -34,7 +34,7 @@ def render_template(template_string, context_dict=None):
     """Render a Django template with the given context"""
     if context_dict is None:
         context_dict = {}
-    
+
     try:
         template = Template(template_string)
         context = Context(context_dict)
@@ -113,7 +113,7 @@ async function initialize(): Promise<void> {
 			message: "Loading Pyodide runtime...",
 		},
 	} as WorkerResponse);
-	
+
 	pyodide = await loadPyodide({
 		indexURL: `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`,
 	});
@@ -161,16 +161,19 @@ async function renderTemplate(
 	return result.toJs();
 }
 
-async function runPython(code: string, data?: Record<string, any>): Promise<any> {
+async function runPython(
+	code: string,
+	data?: Record<string, any>,
+): Promise<any> {
 	await pyodide.loadPackagesFromImports(code);
-	
+
 	// Set data as globals if provided
 	if (data) {
 		for (const [key, value] of Object.entries(data)) {
 			pyodide.globals.set(key, value);
 		}
 	}
-	
+
 	const result = pyodide.runPython(code);
 	return result;
 }
