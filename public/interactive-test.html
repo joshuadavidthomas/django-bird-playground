@@ -561,9 +561,14 @@ This has default: {{ age|default:"Unknown" }}</div>
             
             try {
                 // Extract template and context from the HTML element
-                const template = templateContainer.innerHTML.trim();
+                const rawTemplate = templateContainer.innerHTML.trim();
                 const contextAttr = templateContainer.getAttribute('data-django-template');
                 const context = contextAttr ? JSON.parse(contextAttr) : {};
+                
+                // Decode HTML entities since we're manually extracting from innerHTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = rawTemplate;
+                const template = tempDiv.textContent || tempDiv.innerText || '';
                 
                 log(`Template: ${template.substring(0, 50)}...`);
                 log(`Context: ${JSON.stringify(context)}`);
