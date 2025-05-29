@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django Playground - Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .debug { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .error { background: #fee; border: 1px solid #fcc; }
+        .success { background: #efe; border: 1px solid #cfc; }
+        .loading { background: #fef; border: 1px solid #fcf; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Django Playground Debug Test</h1>
+        
+        <div id="status" class="debug loading">Initializing...</div>
+        
+        <h2>Test Cases</h2>
+        
+        <!-- Simple template test -->
+        <div class="test-case">
+            <h3>Simple Template Test</h3>
+            <div data-django-template='{"name": "World"}'>
+                Hello {{ name }}!
+            </div>
+        </div>
+        
+        <!-- No packages test -->
+        <div class="test-case">
+            <h3>No Packages Test</h3>
+            <div data-django-template='{"count": 5}'>
+                Count: {{ count }}
+            </div>
+        </div>
+        
+        <button id="init-btn">Initialize Django Playground</button>
+        <button id="scan-btn" disabled>Scan DOM</button>
+        
+        <div id="debug-output" class="debug" style="max-height: 300px; overflow-y: auto;"></div>
+    </div>
+
+    <script type="module">
+        import { DjangoPlayground } from '/dist/index.js';
+        
+        const statusEl = document.getElementById('status');
+        const debugEl = document.getElementById('debug-output');
+        const initBtn = document.getElementById('init-btn');
+        const scanBtn = document.getElementById('scan-btn');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            logEntry.className = type;
+            debugEl.appendChild(logEntry);
+            debugEl.scrollTop = debugEl.scrollHeight;
+            console.log(`[${type.toUpperCase()}]`, message);
+        }
+        
+        function updateStatus(message, type = 'loading') {
+            statusEl.textContent = message;
+            statusEl.className = `debug ${type}`;
+        }
+        
+        // Test DOM scanning first
+        scanBtn.addEventListener('click', () => {
+            try {
+                log('Testing DOM scanning...');
+                const result = DjangoPlayground.scanDOM();
+                log(`DOM scan result: ${JSON.stringify(result, null, 2)}`);
+                log('DOM scan completed successfully', 'success');
+            } catch (error) {
+                log(`DOM scan error: ${error.message}`, 'error');
+            }
+        });
+        
+        initBtn.addEventListener('click', async () => {
+            try {
+                updateStatus('Initializing Django Playground...', 'loading');
+                log('Starting initialization...');
+                
+                await DjangoPlayground.init({
+                    onProgress: (step, percent, message) => {
+                        log(`Progress: ${step} (${percent}%) - ${message || ''}`);
+                        updateStatus(`${step} (${percent}%)`, 'loading');
+                    },
+                    onReady: () => {
+                        log('Django Playground ready!', 'success');
+                        updateStatus('Django Playground ready!', 'success');
+                    },
+                    onError: (error) => {
+                        log(`Error: ${error.message}`, 'error');
+                        updateStatus(`Error: ${error.message}`, 'error');
+                    }
+                });
+                
+                log('Initialization completed successfully', 'success');
+                initBtn.disabled = true;
+                
+            } catch (error) {
+                log(`Initialization failed: ${error.message}`, 'error');
+                updateStatus(`Failed: ${error.message}`, 'error');
+            }
+        });
+        
+        // Enable scan button immediately
+        scanBtn.disabled = false;
+        log('Debug test page loaded. Click "Scan DOM" to test DOM scanning, or "Initialize" to test full initialization.');
+    </script>
+</body>
+</html>

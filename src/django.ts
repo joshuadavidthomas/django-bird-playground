@@ -484,7 +484,9 @@ class DjangoPlayground {
 
 			// Collect packages from DOM and options
 			const domScanResult = this.scanDOMForTemplates();
-			const allPackages = [...(options.packages || []), ...domScanResult.packages];
+			const optionsPackages = options.packages || [];
+			const domPackages = domScanResult.packages || [];
+			const allPackages = [...optionsPackages, ...domPackages];
 			const uniquePackages = [...new Set(allPackages)];
 
 			// Create state
@@ -570,7 +572,9 @@ class DjangoPlayground {
 				try {
 					const elementData = this.extractElementData(element as HTMLElement);
 					elements.push(elementData);
-					packages.push(...elementData.packages);
+					if (elementData.packages && elementData.packages.length > 0) {
+						packages.push(...elementData.packages);
+					}
 				} catch (error) {
 					const errorMsg = `Invalid element data: ${(error as Error).message}`;
 					errors.push(errorMsg);
