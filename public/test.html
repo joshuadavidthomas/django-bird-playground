@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django Playground Test Suite</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .test-section {
+            margin: 40px 0;
+            padding: 20px;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .test-section h2 {
+            margin-top: 0;
+            color: #24292e;
+            border-bottom: 1px solid #e1e4e8;
+            padding-bottom: 10px;
+        }
+
+        .test-case {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            background: white;
+        }
+
+        .test-case h3 {
+            margin: 0 0 10px 0;
+            color: #0969da;
+            font-size: 1.1em;
+        }
+
+        .template-content {
+            background: #f6f8fa;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 10px 0;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 14px;
+        }
+
+        /* Loading states */
+        .django-loading {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            padding: 15px;
+            border-radius: 4px;
+            color: #666;
+            font-style: italic;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .django-loading::before {
+            content: "⏳ ";
+        }
+
+        /* Success states */
+        .django-rendered {
+            border-left: 4px solid #28a745;
+            padding-left: 12px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Error states */
+        .django-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            padding: 15px;
+            color: #721c24;
+            margin: 10px 0;
+        }
+
+        .django-error::before {
+            content: "❌ ";
+        }
+
+        /* Progress display */
+        .progress-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 6px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+        }
+
+        .controls button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .controls button:hover {
+            background: #0056b3;
+        }
+
+        .controls button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .status-display {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .status-ready {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .status-loading {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .code-example {
+            background: #f8f9fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .api-demo {
+            background: #fff;
+            border: 2px solid #0969da;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .api-demo h3 {
+            color: #0969da;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐍 Django Playground Test Suite</h1>
+    <p>This page demonstrates and tests the Django Playground singleton API with comprehensive examples.</p>
+
+    <!-- Progress and Status Display -->
+    <div class="progress-container">
+        <h3>Initialization Progress</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+        <div id="progressText">Ready to initialize...</div>
+        <div class="status-display" id="statusDisplay">Status: Not initialized</div>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="controls">
+        <button id="initBtn">Initialize Django</button>
+        <button id="renderDOMBtn" disabled>Render DOM Templates</button>
+        <button id="scanDOMBtn" disabled>Scan DOM</button>
+        <button id="cleanupBtn" disabled>Cleanup</button>
+        <button id="testAPIBtn" disabled>Test Render API</button>
+    </div>
+
+    <!-- Basic Template Examples -->
+    <div class="test-section">
+        <h2>1. Basic Template Examples</h2>
+        
+        <div class="test-case">
+            <h3>Simple Variable Substitution</h3>
+            <div class="template-content" 
+                 data-django-template='{"name": "World", "time": "2025"}'
+                 data-django-loading="Loading simple template..."
+                 data-django-error="Failed to render simple template">
+                Hello {{ name }}! Welcome to {{ time }}.
+            </div>
+        </div>
+
+        <div class="test-case">
+            <h3>Template with Loops</h3>
+            <div class="template-content" 
+                 data-django-template='{"items": ["Apple", "Banana", "Cherry"], "title": "Fruits"}'
+                 data-django-loading="Loading list template..."
+                 data-django-error="Failed to render list template">
+                <h4>{{ title }}</h4>
+                <ul>
+                {% for item in items %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <h3>Template with Conditionals</h3>
+            <div class="template-content" 
+                 data-django-template='{"user": {"name": "Alice", "is_admin": true}, "message_count": 5}'
+                 data-django-loading="Loading conditional template..."
+                 data-django-error="Failed to render conditional template">
+                <p>Welcome, {{ user.name }}!</p>
+                {% if user.is_admin %}
+                    <p><strong>Admin Panel Available</strong></p>
+                {% endif %}
+                {% if message_count > 0 %}
+                    <p>You have {{ message_count }} new messages.</p>
+                {% else %}
+                    <p>No new messages.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Django Packages Examples -->
+    <div class="test-section">
+        <h2>2. Django Packages Examples</h2>
+        
+        <div class="test-case">
+            <h3>Basic Django Package Template</h3>
+            <div class="template-content" 
+                 data-django-template='{"items": [1, 2, 3, 4, 5]}'
+                 data-django-packages='["django"]'
+                 data-django-loading="Loading Django package template..."
+                 data-django-error="Failed to render Django package template">
+                {% load staticfiles %}
+                <div>
+                    <h4>Numbers:</h4>
+                    {% for item in items %}
+                        <span style="margin: 5px; padding: 5px; background: #e3f2fd; border-radius: 3px;">{{ item }}</span>
+                        {% if not forloop.last %} • {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <h3>Template with Custom Filters</h3>
+            <div class="template-content" 
+                 data-django-template='{"title": "django playground", "description": "a tool for testing django templates in the browser"}'
+                 data-django-packages='["django"]'
+                 data-django-loading="Loading filter template..."
+                 data-django-error="Failed to render filter template">
+                <h4>{{ title|title }}</h4>
+                <p>{{ description|capfirst }}</p>
+                <small>Length: {{ description|length }} characters</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Handling Examples -->
+    <div class="test-section">
+        <h2>3. Error Handling Examples</h2>
+        
+        <div class="test-case">
+            <h3>Invalid JSON Context</h3>
+            <div class="template-content" 
+                 data-django-template='{"name": "Test", invalid_json}'
+                 data-django-loading="Loading invalid JSON template..."
+                 data-django-error="Invalid JSON in template context">
+                This should show an error: {{ name }}
+            </div>
+        </div>
+
+        <div class="test-case">
+            <h3>Invalid Django Template Syntax</h3>
+            <div class="template-content" 
+                 data-django-template='{"name": "Test"}'
+                 data-django-loading="Loading invalid syntax template..."
+                 data-django-error="Invalid template syntax">
+                {% if name %
+                    <p>Missing endif tag</p>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <h3>Undefined Variable</h3>
+            <div class="template-content" 
+                 data-django-template='{"name": "Test"}'
+                 data-django-loading="Loading undefined variable template..."
+                 data-django-error="Undefined variable in template">
+                <p>Name: {{ name }}</p>
+                <p>Age: {{ undefined_variable }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Demonstration -->
+    <div class="test-section">
+        <h2>4. Programmatic API Examples</h2>
+        
+        <div class="api-demo">
+            <h3>New Singleton API</h3>
+            <div class="code-example">
+// Modern singleton API
+await DjangoPlayground.init({
+    packages: ['django'],
+    onProgress: (step, percent, message) => console.log(`${step}: ${percent}% - ${message}`),
+    onReady: () => console.log('Django ready!'),
+    onError: (error) => console.error('Django error:', error)
+});
+
+const html = await DjangoPlayground.render(
+    'Hello {{ name }}!', 
+    { name: 'Claude' }
+);
+            </div>
+            <div id="singletonResult" class="template-content">Result will appear here...</div>
+        </div>
+
+        <div class="api-demo">
+            <h3>Backward Compatible API</h3>
+            <div class="code-example">
+// Legacy createDjango API (still supported)
+const django = createDjango({ packages: ['django'] });
+await django.init();
+const html = await django.renderTemplate('Hello {{ name }}!', { name: 'Claude' });
+            </div>
+            <div id="legacyResult" class="template-content">Result will appear here...</div>
+        </div>
+
+        <div class="api-demo">
+            <h3>Batch Operations</h3>
+            <div class="code-example">
+// Render multiple templates at once
+const templates = [
+    { template: 'Hello {{ name }}!', context: { name: 'Alice' } },
+    { template: 'Count: {{ items|length }}', context: { items: [1,2,3] } }
+];
+// Note: batchRender would be implemented in the singleton
+            </div>
+            <div id="batchResult" class="template-content">Batch results will appear here...</div>
+        </div>
+    </div>
+
+    <!-- Advanced Features -->
+    <div class="test-section">
+        <h2>5. Advanced Features</h2>
+        
+        <div class="test-case">
+            <h3>Complex Data Structures</h3>
+            <div class="template-content" 
+                 data-django-template='{"products": [{"name": "Laptop", "price": 999.99, "tags": ["electronics", "computers"]}, {"name": "Book", "price": 29.99, "tags": ["education", "reading"]}], "currency": "USD"}'
+                 data-django-loading="Loading complex data template..."
+                 data-django-error="Failed to render complex data">
+                <h4>Products ({{ currency }})</h4>
+                {% for product in products %}
+                <div style="border: 1px solid #ddd; margin: 10px 0; padding: 10px; border-radius: 4px;">
+                    <h5>{{ product.name }}</h5>
+                    <p>Price: ${{ product.price }}</p>
+                    <p>Tags: 
+                    {% for tag in product.tags %}
+                        <span style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin: 2px;">{{ tag }}</span>
+                    {% endfor %}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="test-case">
+            <h3>Date and Time Formatting</h3>
+            <div class="template-content" 
+                 data-django-template='{"current_date": "2025-05-29", "events": [{"name": "Meeting", "time": "14:30"}, {"name": "Lunch", "time": "12:00"}]}'
+                 data-django-packages='["django"]'
+                 data-django-loading="Loading date template..."
+                 data-django-error="Failed to render date template">
+                <h4>Today: {{ current_date }}</h4>
+                <h5>Schedule:</h5>
+                {% for event in events %}
+                    <p>{{ event.time }} - {{ event.name }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Results Display -->
+    <div class="test-section">
+        <h2>6. Test Results & Logs</h2>
+        <div id="testLogs" class="code-example" style="height: 200px; overflow-y: auto; font-size: 12px;">
+            <em>Test logs will appear here...</em>
+        </div>
+    </div>
+
+    <script type="module">
+        import { DjangoPlayground, createDjango } from '../src/index.js';
+        
+        // Test state
+        let initStartTime;
+        const testLogs = document.getElementById('testLogs');
+        const statusDisplay = document.getElementById('statusDisplay');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        
+        // Utility functions
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.style.color = type === 'error' ? '#d73a49' : type === 'success' ? '#28a745' : '#24292e';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            testLogs.appendChild(logEntry);
+            testLogs.scrollTop = testLogs.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function updateStatus(status, type = 'loading') {
+            statusDisplay.textContent = `Status: ${status}`;
+            statusDisplay.className = `status-display status-${type}`;
+        }
+
+        function updateProgress(percent, message) {
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = message || `${percent}% complete`;
+        }
+
+        // Event handlers
+        function setupEventListeners() {
+            // Django events
+            DjangoPlayground.addEventListener('loading', (event) => {
+                const { step, message } = event.detail;
+                log(`Loading: ${step} - ${message}`);
+                updateStatus(`Loading: ${step}`, 'loading');
+                
+                // Simple progress mapping
+                const progressMap = {
+                    'initializing': 10,
+                    'loading_pyodide': 30,
+                    'setting_up_python': 50,
+                    'installing_packages': 70,
+                    'setting_up_django': 90,
+                    'ready': 100
+                };
+                const percent = progressMap[step] || 50;
+                updateProgress(percent, message);
+            });
+
+            DjangoPlayground.addEventListener('ready', (event) => {
+                const { message } = event.detail;
+                log(`✅ ${message}`, 'success');
+                updateStatus('Ready', 'ready');
+                updateProgress(100, 'Django ready!');
+                
+                // Enable buttons
+                document.getElementById('renderDOMBtn').disabled = false;
+                document.getElementById('scanDOMBtn').disabled = false;
+                document.getElementById('cleanupBtn').disabled = false;
+                document.getElementById('testAPIBtn').disabled = false;
+                
+                if (initStartTime) {
+                    const duration = Date.now() - initStartTime;
+                    log(`Initialization completed in ${duration}ms`, 'success');
+                }
+            });
+
+            DjangoPlayground.addEventListener('error', (event) => {
+                const { error, message } = event.detail;
+                log(`❌ Error: ${message || error.message}`, 'error');
+                updateStatus(`Error: ${message || error.message}`, 'error');
+                updateProgress(0, 'Error occurred');
+            });
+
+            // Window events for debugging
+            window.addEventListener('django:ready', (event) => {
+                log('Global django:ready event received', 'info');
+            });
+
+            window.addEventListener('django:error', (event) => {
+                log(`Global django:error event: ${event.detail.message}`, 'error');
+            });
+        }
+
+        // Test functions
+        async function testSingletonAPI() {
+            try {
+                log('Testing singleton API...');
+                const html = await DjangoPlayground.render(
+                    'Hello {{ name }}! Current time: {{ now }}',
+                    { name: 'Claude', now: new Date().toLocaleTimeString() }
+                );
+                document.getElementById('singletonResult').innerHTML = html;
+                log('✅ Singleton API test passed', 'success');
+            } catch (error) {
+                log(`❌ Singleton API test failed: ${error.message}`, 'error');
+                document.getElementById('singletonResult').innerHTML = `<div class="django-error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testLegacyAPI() {
+            try {
+                log('Testing legacy createDjango API...');
+                const django = createDjango({ packages: ['django'] });
+                
+                if (!django.isReady()) {
+                    log('Legacy Django instance not ready, waiting...');
+                    // The createDjango instance should use the same underlying state
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                const html = await django.renderTemplate(
+                    'Hello {{ name }}! Items: {{ items|length }}',
+                    { name: 'Legacy User', items: [1, 2, 3, 4, 5] }
+                );
+                document.getElementById('legacyResult').innerHTML = html;
+                log('✅ Legacy API test passed', 'success');
+            } catch (error) {
+                log(`❌ Legacy API test failed: ${error.message}`, 'error');
+                document.getElementById('legacyResult').innerHTML = `<div class="django-error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function scanDOM() {
+            try {
+                log('Scanning DOM for templates...');
+                const scanResult = DjangoPlayground.scanDOM();
+                log(`Found ${scanResult.elements.length} template elements`);
+                log(`Found ${scanResult.packages.length} unique packages: ${scanResult.packages.join(', ')}`);
+                
+                if (scanResult.errors.length > 0) {
+                    scanResult.errors.forEach(error => {
+                        log(`Scan error: ${error}`, 'error');
+                    });
+                }
+                
+                log('✅ DOM scan completed', 'success');
+                return scanResult;
+            } catch (error) {
+                log(`❌ DOM scan failed: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        async function renderDOMTemplates() {
+            try {
+                log('Rendering all DOM templates...');
+                await DjangoPlayground.renderDOM();
+                log('✅ DOM templates rendered successfully', 'success');
+            } catch (error) {
+                log(`❌ DOM rendering failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Button event handlers
+        document.getElementById('initBtn').addEventListener('click', async () => {
+            try {
+                updateStatus('Initializing...', 'loading');
+                updateProgress(0, 'Starting initialization...');
+                initStartTime = Date.now();
+                log('🚀 Starting Django initialization...');
+                
+                await DjangoPlayground.init({
+                    packages: ['django'],
+                    autoRender: false, // We'll render manually to demonstrate
+                    onProgress: (step, percent, message) => {
+                        log(`Progress: ${step} (${percent}%) - ${message}`);
+                    },
+                    onReady: () => {
+                        log('Received onReady callback', 'success');
+                    },
+                    onError: (error) => {
+                        log(`Received onError callback: ${error.message}`, 'error');
+                    }
+                });
+                
+                document.getElementById('initBtn').disabled = true;
+            } catch (error) {
+                log(`❌ Initialization failed: ${error.message}`, 'error');
+                updateStatus(`Failed: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('scanDOMBtn').addEventListener('click', scanDOM);
+        document.getElementById('renderDOMBtn').addEventListener('click', renderDOMTemplates);
+        
+        document.getElementById('testAPIBtn').addEventListener('click', async () => {
+            await testSingletonAPI();
+            await testLegacyAPI();
+        });
+
+        document.getElementById('cleanupBtn').addEventListener('click', () => {
+            log('🧹 Cleaning up Django...');
+            DjangoPlayground.cleanup();
+            updateStatus('Cleaned up', 'ready');
+            updateProgress(0, 'Ready to reinitialize');
+            
+            // Reset buttons
+            document.getElementById('initBtn').disabled = false;
+            document.getElementById('renderDOMBtn').disabled = true;
+            document.getElementById('scanDOMBtn').disabled = true;
+            document.getElementById('cleanupBtn').disabled = true;
+            document.getElementById('testAPIBtn').disabled = true;
+            
+            log('✅ Cleanup completed', 'success');
+        });
+
+        // Setup and initialization
+        setupEventListeners();
+        log('🎯 Django Playground Test Suite loaded');
+        log('Click "Initialize Django" to begin testing');
+        updateStatus('Ready to initialize', 'ready');
+
+        // Expose for debugging
+        window.DjangoPlayground = DjangoPlayground;
+        window.createDjango = createDjango;
+        window.testLog = log;
+        
+        log('Global objects available: DjangoPlayground, createDjango, testLog');
+    </script>
+</body>
+</html>

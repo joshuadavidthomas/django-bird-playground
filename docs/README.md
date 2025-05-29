@@ -61,9 +61,9 @@ This `docs/` directory contains the complete design and implementation strategy:
 - **Performance Monitoring** - Built-in stats and budget warnings
 
 **Implementation Phases:**
-1. **Phase 1 (MVP):** Core functionality with data attributes
-2. **Phase 2 (Complete):** Framework integration and production features
-3. **Phase 3 (Advanced):** Interactive playground and optimizations
+1. **Phase 1 (Complete):** Core singleton architecture, DOM scanning, batch package installation ✅
+2. **Phase 2 (Active):** Validation testing with real Django templates and packages 🔄
+3. **Phase 3 (Planned):** Framework integrations (React/Vue) and interactive playground features ⏳
 
 **Who Should Read:** Developers implementing Django Playground.
 
@@ -92,52 +92,61 @@ This `docs/` directory contains the complete design and implementation strategy:
 
 ### **[CHECKLIST.md](./CHECKLIST.md)** ✅ *Living Project Tracker*
 
-**Purpose:** Dynamic task list that grows as the project progresses.
+**Purpose:** Dynamic task list tracking implementation progress across all phases.
 
 **Key Sections:**
-- **Project Setup & Planning** - Read docs, define Phase 1 tasks, set up development
-- **Phase 1-3 Implementation** - Placeholder phases to fill out as work progresses
-- **Documentation & Testing** - User guides, migration docs, validation
-- **Release Preparation** - Performance testing, browser compatibility, packaging
+- **Phase 1 (Complete)** - Core architecture implementation ✅
+- **Phase 2 (Active)** - Validation with real Django templates and packages 🔄
+- **Phase 3 (Planned)** - Framework integrations and advanced features ⏳
+- **Documentation & Testing** - User guides, validation results, performance testing
 
-**How It Works:**
-- **Self-bootstrapping** - First task is to read docs and create detailed plan
-- **Living, breathing document** - Add tasks freely, remove obsolete items, check off when actually implemented
-- **Constantly evolving** - Structure changes as implementation challenges are discovered
-- **Dynamic progress tracking** - Reflects actual project state, not wishful thinking
+**Current Focus:**
+- **Validation-First Approach** - Testing core functionality before adding framework features
+- **Real-World Testing** - Django templates, third-party packages, error handling
+- **Performance Validation** - Memory usage, render times, initialization benchmarks
+- **API Refinement** - Based on validation findings and real usage patterns
 
 **Who Should Read:** Anyone actively working on Django Playground implementation.
 
-**Status:** 🚀 **Active** - Ready to track project progress
+**Status:** 🔄 **Phase 2 Active** - Validation and testing in progress
 
 ## Quick Start (For Developers)
 
-If you're implementing Django Playground:
+**Current Priority: Phase 2 Validation**
 
-1. **Read [DESIGN_DOC.md](./DESIGN_DOC.md)** to understand what you're building
-2. **Review [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md)** for technical architecture  
-3. **Study [MIGRATION_STRATEGY.md](./MIGRATION_STRATEGY.md)** to understand changes needed
-4. **Check [CHECKLIST.md](./CHECKLIST.md)** for current tasks and add detailed Phase 1 items
+If you're contributing to Django Playground:
+
+1. **Start with [CHECKLIST.md](./CHECKLIST.md)** - Focus on Phase 2 validation tasks currently in progress
+2. **Review [DESIGN_DOC.md](./DESIGN_DOC.md)** to understand the target API being validated
+3. **Check [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md)** for technical architecture context
+4. **Validation Focus Areas:**
+   - Test core singleton architecture with real Django templates
+   - Validate batch package installation with django-bird, django-crispy-forms
+   - Measure performance (initialization time, memory usage, render speed)
+   - Test error handling and edge cases
 5. **Use [ONBOARDING_PROMPT.md](./ONBOARDING_PROMPT.md)** to onboard new LLM conversations
-6. **Start with the first unchecked items** in the checklist
+6. **Document validation findings** to guide Phase 3 planning
 
 ## Working with LLMs
 
-**Use subagents to orchestrate complex work:**
+**Current Phase 2 Focus - Use subagents for validation tasks:**
 
-- **Delegate research tasks** - "Analyze the current codebase structure"
-- **Parallel development** - "Create React integration while working on Vue"
-- **Specialized analysis** - "Evaluate memory management strategies"
-- **Independent implementation** - "Build DOM scanning based on these specs"
-- **Documentation creation** - "Write user examples for each framework"
+- **Validation testing** - "Test core API with complex Django templates"
+- **Performance benchmarking** - "Measure initialization time and memory usage patterns"
+- **Package integration testing** - "Validate django-bird and django-crispy-forms installation"
+- **Error handling validation** - "Test template syntax errors and package conflicts"
+- **Real-world scenario testing** - "Test with actual documentation site HTML structures"
 
 **Coordinate multiple subagents for:**
-- Building framework integrations simultaneously
-- Research + implementation of the same feature
-- Creating comprehensive test coverage
-- Analyzing alternative architectural approaches
+- Parallel validation of different Django packages
+- Performance testing across different browser environments  
+- Creating comprehensive validation test cases
+- Documenting validation findings and edge cases
 
-This complex project benefits from parallel work streams that subagents can handle independently.
+**Future Phase 3 Focus:**
+- Building framework integrations simultaneously (React, Vue, Astro)
+- Research + implementation of interactive playground features
+- Creating user documentation and framework-specific examples
 
 ## Quick Start (For Users)
 
@@ -163,6 +172,29 @@ If you want to add live Django examples to your documentation:
 
 See [DESIGN_DOC.md](./DESIGN_DOC.md) for complete usage documentation.
 
+## Phase 2 Validation Approach
+
+**Why Validation Before Framework Integration:**
+- **Validate core architecture** - Ensure singleton pattern and DOM scanning work reliably
+- **Test real-world packages** - django-bird, django-crispy-forms, django-tables2
+- **Measure actual performance** - Initialization time, memory usage, render speeds
+- **Identify edge cases** - Error handling, package conflicts, template syntax issues
+- **Refine API based on findings** - Adjust before framework integrations lock in patterns
+
+**Key Validation Areas:**
+1. **Template Rendering** - Complex Django templates with filters, tags, inheritance
+2. **Package Installation** - Third-party Django packages with dependencies
+3. **Performance Benchmarks** - Memory usage patterns and render time consistency
+4. **Error Handling** - Template syntax errors, missing packages, initialization failures
+5. **DOM Integration** - Data attribute processing across different HTML structures
+
+**Success Criteria for Phase 2:**
+- ✅ Reliable initialization under 15 seconds
+- ✅ Stable memory usage under 150MB for typical documentation sites
+- ✅ Consistent template rendering with common Django packages
+- ✅ Graceful error handling that doesn't break documentation pages
+- ✅ DOM scanning works with complex nested structures and multiple examples
+
 ## Architecture Decisions
 
 ### Why Singleton Pattern?
@@ -187,10 +219,10 @@ See [DESIGN_DOC.md](./DESIGN_DOC.md) for complete usage documentation.
 
 ## Development Status
 
-- ✅ **Design Complete** - API, implementation plan, and migration strategy documented
-- 🔄 **Implementation In Progress** - Building on existing Pyodide worker foundation
-- ⏳ **Testing Planned** - Real-world documentation sites and framework integration
-- ⏳ **Documentation Planned** - User guides and framework-specific examples
+- ✅ **Phase 1 Complete** - Core singleton architecture, DOM scanning, and batch package installation implemented
+- 🔄 **Phase 2 Validation In Progress** - Testing core functionality with real Django templates and packages
+- ⏳ **Phase 3 Planned** - Framework integrations (React/Vue hooks) and interactive playground features
+- ⏳ **User Documentation Planned** - Comprehensive guides and framework-specific examples
 
 ## Contributing
 
