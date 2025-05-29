@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Django Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .debug { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simple Django Template Test</h1>
+        
+        <div id="output" class="debug">Click a button to test...</div>
+        
+        <button id="test-basic">Test Basic Template</button>
+        <button id="test-programmatic">Test Programmatic Render</button>
+        
+        <div id="debug" class="debug" style="max-height: 300px; overflow-y: auto;"></div>
+    </div>
+
+    <script type="module">
+        import { DjangoPlayground } from '/dist/index.js';
+        
+        const outputEl = document.getElementById('output');
+        const debugEl = document.getElementById('debug');
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            debugEl.appendChild(logEntry);
+            debugEl.scrollTop = debugEl.scrollHeight;
+            console.log(message);
+        }
+        
+        // Initialize Django first
+        log('Initializing Django...');
+        try {
+            await DjangoPlayground.init({
+                onProgress: (step, percent) => log(`Progress: ${step} (${percent}%)`),
+                onReady: () => log('Django ready!'),
+                onError: (error) => log(`Error: ${error.message}`)
+            });
+            log('Django initialization complete!');
+        } catch (error) {
+            log(`Initialization failed: ${error.message}`);
+        }
+        
+        document.getElementById('test-basic').addEventListener('click', async () => {
+            log('Testing basic template rendering...');
+            try {
+                const result = await DjangoPlayground.render(
+                    'Hello {{ name }}!', 
+                    { name: 'World' }
+                );
+                outputEl.innerHTML = `Result: "${result}"`;
+                log(`Template rendered: "${result}"`);
+            } catch (error) {
+                outputEl.innerHTML = `Error: ${error.message}`;
+                log(`Template error: ${error.message}`);
+            }
+        });
+        
+        document.getElementById('test-programmatic').addEventListener('click', async () => {
+            log('Testing programmatic render...');
+            try {
+                const result = await DjangoPlayground.render(
+                    'Count: {{ count }}, Name: {{ name }}', 
+                    { count: 42, name: 'Test' }
+                );
+                outputEl.innerHTML = `Result: "${result}"`;
+                log(`Template rendered: "${result}"`);
+            } catch (error) {
+                outputEl.innerHTML = `Error: ${error.message}`;
+                log(`Template error: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>
