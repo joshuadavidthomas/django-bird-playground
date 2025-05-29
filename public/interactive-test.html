@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django Playground - Interactive Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: #fafbfc;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            margin: -20px -20px 40px -20px;
+            padding: 40px 20px;
+        }
+
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .header p {
+            margin: 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .init-section {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .init-btn {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .init-btn:hover:not(:disabled) {
+            background: #1565c0;
+            transform: translateY(-1px);
+        }
+
+        .init-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status.ready {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .example {
+            background: white;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            margin: 25px 0;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .example:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .example-header {
+            background: #f6f8fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e1e4e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .example-title {
+            margin: 0;
+            color: #24292e;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .run-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 80px;
+        }
+
+        .run-btn:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .run-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .run-btn.loading {
+            background: #fd7e14;
+        }
+
+        .run-btn.success {
+            background: #28a745;
+        }
+
+        .run-btn.error {
+            background: #dc3545;
+        }
+
+        .example-body {
+            padding: 20px;
+        }
+
+        .template-source {
+            background: #f8f9fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 13px;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .context-display {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 12px;
+            margin-bottom: 15px;
+            color: #1565c0;
+        }
+
+        .result-container {
+            min-height: 50px;
+            border: 2px dashed #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .result-container.loading {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-color: #fd7e14;
+            color: #666;
+            font-style: italic;
+        }
+
+        .result-container.success {
+            background: #f8fff9;
+            border-color: #28a745;
+            border-style: solid;
+        }
+
+        .result-container.error {
+            background: #fff5f5;
+            border-color: #dc3545;
+            border-style: solid;
+            color: #721c24;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .loading::before {
+            content: "⏳ ";
+        }
+
+        .success::before {
+            content: "✅ ";
+        }
+
+        .error::before {
+            content: "❌ ";
+        }
+
+        .section-title {
+            color: #24292e;
+            border-bottom: 2px solid #e1e4e8;
+            padding-bottom: 10px;
+            margin: 40px 0 20px 0;
+        }
+
+        .logs {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+
+        .log-entry {
+            margin: 2px 0;
+        }
+
+        .log-entry.error {
+            color: #f48771;
+        }
+
+        .log-entry.success {
+            color: #7cc7a9;
+        }
+
+        .log-entry.info {
+            color: #9cdcfe;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐍 Django Playground</h1>
+        <p>Interactive Documentation & Testing</p>
+    </div>
+
+    <!-- Initialization Section -->
+    <div class="init-section">
+        <button id="initBtn" class="init-btn">Initialize Django Playground</button>
+        <div id="initStatus" class="status" style="display: none;"></div>
+    </div>
+
+    <!-- Basic Examples -->
+    <h2 class="section-title">Basic Template Examples</h2>
+
+    <div class="example">
+        <div class="example-header">
+            <h3 class="example-title">Simple Variable Substitution</h3>
+            <button class="run-btn" data-example="basic-variables" disabled>▶ Run</button>
+        </div>
+        <div class="example-body">
+            <div class="template-source">Hello {{ name }}! Welcome to {{ year }}.</div>
+            <div class="context-display">Context: {"name": "World", "year": 2025}</div>
+            <div class="result-container" data-result="basic-variables">
+                Click "Run" to render this template
+            </div>
+        </div>
+    </div>
+
+    <div class="example">
+        <div class="example-header">
+            <h3 class="example-title">Template with Loops</h3>
+            <button class="run-btn" data-example="template-loops" disabled>▶ Run</button>
+        </div>
+        <div class="example-body">
+            <div class="template-source"><h4>{{ title }}</h4>
+<ul>
+{% for item in items %}
+    <li>{{ item }}</li>
+{% endfor %}
+</ul></div>
+            <div class="context-display">Context: {"title": "Fruits", "items": ["Apple", "Banana", "Cherry"]}</div>
+            <div class="result-container" data-result="template-loops">
+                Click "Run" to render this template
+            </div>
+        </div>
+    </div>
+
+    <div class="example">
+        <div class="example-header">
+            <h3 class="example-title">Conditional Logic</h3>
+            <button class="run-btn" data-example="conditionals" disabled>▶ Run</button>
+        </div>
+        <div class="example-body">
+            <div class="template-source"><p>Welcome, {{ user.name }}!</p>
+{% if user.is_admin %}
+    <p><strong>Admin Panel Available</strong></p>
+{% endif %}
+{% if message_count > 0 %}
+    <p>You have {{ message_count }} new messages.</p>
+{% else %}
+    <p>No new messages.</p>
+{% endif %}</div>
+            <div class="context-display">Context: {"user": {"name": "Alice", "is_admin": true}, "message_count": 5}</div>
+            <div class="result-container" data-result="conditionals">
+                Click "Run" to render this template
+            </div>
+        </div>
+    </div>
+
+    <!-- Django Features -->
+    <h2 class="section-title">Django Features</h2>
+
+    <div class="example">
+        <div class="example-header">
+            <h3 class="example-title">Built-in Filters</h3>
+            <button class="run-btn" data-example="filters" disabled>▶ Run</button>
+        </div>
+        <div class="example-body">
+            <div class="template-source"><h4>{{ title|title }}</h4>
+<p>{{ description|capfirst }}</p>
+<small>Length: {{ description|length }} characters</small>
+<p>Uppercase: {{ title|upper }}</p></div>
+            <div class="context-display">Context: {"title": "django playground", "description": "a tool for testing django templates in the browser"}</div>
+            <div class="result-container" data-result="filters">
+                Click "Run" to render this template
+            </div>
+        </div>
+    </div>
+
+    <div class="example">
+        <div class="example-header">
+            <h3 class="example-title">Complex Data Structures</h3>
+            <button class="run-btn" data-example="complex-data" disabled>▶ Run</button>
+        </div>
+        <div class="example-body">
+            <div class="template-source"><h4>Products ({{ currency }})</h4>
+{% for product in products %}
+<div style="border: 1px solid #ddd; margin: 10px 0; padding: 10px; border-radius: 4px;">
+    <h5>{{ product.name }}</h5>
+    <p>Price: ${{ product.price }}</p>
+    <p>Tags: 
+    {% for tag in product.tags %}
+        <span style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin: 2px;">{{ tag }}</span>
+    {% endfor %}
+    </p>
+</div>
+{% endfor %}</div>
+            <div class="context-display">Context: {"products": [{"name": "Laptop", "price": 999.99, "tags": ["electronics", "computers"]}, {"name": "Book", "price": 29.99, "tags": ["education", "reading"]}], "currency": "USD"}</div>
+            <div class="result-container" data-result="complex-data">
+                Click "Run" to render this template
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Handling -->
+    <h2 class="section-title">Error Handling Examples</h2>
+
+    <div class="example">
+        <div class="example-header">
+            <h3 class="example-title">Undefined Variable (Django handles gracefully)</h3>
+            <button class="run-btn" data-example="undefined-var" disabled>▶ Run</button>
+        </div>
+        <div class="example-body">
+            <div class="template-source">This works: {{ name }}
+This is undefined: {{ undefined_variable }}
+This also works: {{ age|default:"Unknown" }}</div>
+            <div class="context-display">Context: {"name": "Test", "age": null}</div>
+            <div class="result-container" data-result="undefined-var">
+                Click "Run" to render this template
+            </div>
+        </div>
+    </div>
+
+    <div class="example">
+        <div class="example-header">
+            <h3 class="example-title">Template Syntax Error</h3>
+            <button class="run-btn" data-example="syntax-error" disabled>▶ Run</button>
+        </div>
+        <div class="example-body">
+            <div class="template-source">{% if name %}
+    <p>This should fail due to missing endif</p></div>
+            <div class="context-display">Context: {"name": "Test"}</div>
+            <div class="result-container" data-result="syntax-error">
+                Click "Run" to render this template
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs Section -->
+    <h2 class="section-title">Execution Logs</h2>
+    <div id="logs" class="logs">
+        <div class="log-entry info">Ready to start testing...</div>
+    </div>
+
+    <script type="module">
+        import { DjangoPlayground } from '../src/index.js';
+        
+        const initBtn = document.getElementById('initBtn');
+        const initStatus = document.getElementById('initStatus');
+        const logsContainer = document.getElementById('logs');
+        
+        let initialized = false;
+        
+        // Template data for each example
+        const examples = {
+            'basic-variables': {
+                template: 'Hello {{ name }}! Welcome to {{ year }}.',
+                context: { name: 'World', year: 2025 }
+            },
+            'template-loops': {
+                template: `<h4>{{ title }}</h4>
+<ul>
+{% for item in items %}
+    <li>{{ item }}</li>
+{% endfor %}
+</ul>`,
+                context: { title: 'Fruits', items: ['Apple', 'Banana', 'Cherry'] }
+            },
+            'conditionals': {
+                template: `<p>Welcome, {{ user.name }}!</p>
+{% if user.is_admin %}
+    <p><strong>Admin Panel Available</strong></p>
+{% endif %}
+{% if message_count > 0 %}
+    <p>You have {{ message_count }} new messages.</p>
+{% else %}
+    <p>No new messages.</p>
+{% endif %}`,
+                context: { user: { name: 'Alice', is_admin: true }, message_count: 5 }
+            },
+            'filters': {
+                template: `<h4>{{ title|title }}</h4>
+<p>{{ description|capfirst }}</p>
+<small>Length: {{ description|length }} characters</small>
+<p>Uppercase: {{ title|upper }}</p>`,
+                context: { title: 'django playground', description: 'a tool for testing django templates in the browser' }
+            },
+            'complex-data': {
+                template: `<h4>Products ({{ currency }})</h4>
+{% for product in products %}
+<div style="border: 1px solid #ddd; margin: 10px 0; padding: 10px; border-radius: 4px;">
+    <h5>{{ product.name }}</h5>
+    <p>Price: ${{ product.price }}</p>
+    <p>Tags: 
+    {% for tag in product.tags %}
+        <span style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin: 2px;">{{ tag }}</span>
+    {% endfor %}
+    </p>
+</div>
+{% endfor %}`,
+                context: { 
+                    products: [
+                        { name: 'Laptop', price: 999.99, tags: ['electronics', 'computers'] },
+                        { name: 'Book', price: 29.99, tags: ['education', 'reading'] }
+                    ], 
+                    currency: 'USD' 
+                }
+            },
+            'undefined-var': {
+                template: `This works: {{ name }}
+This is undefined: {{ undefined_variable }}
+This also works: {{ age|default:"Unknown" }}`,
+                context: { name: 'Test', age: null }
+            },
+            'syntax-error': {
+                template: `{% if name %}
+    <p>This should fail due to missing endif</p>`,
+                context: { name: 'Test' }
+            }
+        };
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function updateInitStatus(message, type) {
+            initStatus.textContent = message;
+            initStatus.className = `status ${type}`;
+            initStatus.style.display = 'block';
+        }
+        
+        // Initialize Django
+        initBtn.addEventListener('click', async () => {
+            initBtn.disabled = true;
+            updateInitStatus('Initializing Django...', 'loading');
+            log('Starting Django Playground initialization...');
+            
+            try {
+                await DjangoPlayground.init({
+                    packages: ['django'],
+                    autoRender: false,
+                    onProgress: (step, percent, message) => {
+                        log(`Progress: ${step} (${percent}%) - ${message}`);
+                        updateInitStatus(`${message} (${percent}%)`, 'loading');
+                    },
+                    onReady: () => {
+                        log('Django ready for use!', 'success');
+                    },
+                    onError: (error) => {
+                        log(`Error: ${error.message}`, 'error');
+                    }
+                });
+                
+                updateInitStatus('Django ready! 🎉', 'ready');
+                log('✅ Django Playground initialization complete!', 'success');
+                initialized = true;
+                
+                // Enable all run buttons
+                document.querySelectorAll('.run-btn').forEach(btn => {
+                    btn.disabled = false;
+                });
+                
+            } catch (error) {
+                updateInitStatus(`Failed: ${error.message}`, 'error');
+                log(`❌ Initialization failed: ${error.message}`, 'error');
+                initBtn.disabled = false;
+            }
+        });
+        
+        // Handle individual example runs
+        document.addEventListener('click', async (event) => {
+            if (!event.target.classList.contains('run-btn') || !initialized) return;
+            
+            const button = event.target;
+            const exampleId = button.dataset.example;
+            const resultContainer = document.querySelector(`[data-result="${exampleId}"]`);
+            const exampleData = examples[exampleId];
+            
+            if (!exampleData) {
+                log(`❌ Unknown example: ${exampleId}`, 'error');
+                return;
+            }
+            
+            // Update button state
+            button.disabled = true;
+            button.textContent = '⏳ Running...';
+            button.className = 'run-btn loading';
+            
+            // Update result container
+            resultContainer.className = 'result-container loading';
+            resultContainer.textContent = 'Rendering template...';
+            
+            log(`Running example: ${exampleId}`);
+            
+            try {
+                const result = await DjangoPlayground.render(
+                    exampleData.template,
+                    exampleData.context
+                );
+                
+                // Success
+                resultContainer.className = 'result-container success';
+                resultContainer.innerHTML = result;
+                button.textContent = '✅ Success';
+                button.className = 'run-btn success';
+                log(`✅ ${exampleId} rendered successfully`, 'success');
+                
+            } catch (error) {
+                // Error
+                resultContainer.className = 'result-container error';
+                resultContainer.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                button.textContent = '❌ Failed';
+                button.className = 'run-btn error';
+                log(`❌ ${exampleId} failed: ${error.message}`, 'error');
+            }
+            
+            // Re-enable button after delay
+            setTimeout(() => {
+                button.disabled = false;
+                button.textContent = '▶ Run';
+                button.className = 'run-btn';
+            }, 2000);
+        });
+        
+        // Make DjangoPlayground available for debugging
+        window.DjangoPlayground = DjangoPlayground;
+        window.log = log;
+    </script>
+</body>
+</html>
