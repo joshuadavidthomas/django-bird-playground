@@ -220,7 +220,10 @@ async function batchRender(
 	};
 
 	for (let i = 0; i < templates.length; i++) {
-		const { template, context = {} } = templates[i];
+		const templateData = templates[i];
+		if (!templateData) continue;
+		
+		const { template, context = {} } = templateData;
 		try {
 			const renderResult = await renderTemplate(template, context);
 			result.results.push(renderResult);

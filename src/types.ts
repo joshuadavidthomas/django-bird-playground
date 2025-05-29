@@ -51,18 +51,26 @@ export type DomAttribute = (typeof DOM_ATTRIBUTES)[keyof typeof DOM_ATTRIBUTES];
 // Configuration types
 export interface DjangoPlaygroundConfig {
 	workerPath?: string;
-	autoInit?: boolean;
-	defaultPackages?: string[];
-	enableProgressReporting?: boolean;
-	errorReporting?: boolean;
-	domScanSelector?: string;
+	packages?: string[];
+	autoRender?: boolean;
+	timeout?: number;
+	onProgress?: (step: string, percent: number, message?: string) => void;
+	onReady?: () => void;
+	onError?: (error: Error) => void;
 }
 
 export interface InitOptions {
 	packages?: string[];
-	onProgress?: (event: ProgressEvent) => void;
-	onReady?: (event: ReadyEvent) => void;
-	onError?: (event: ErrorEvent) => void;
+	autoRender?: boolean;
+	timeout?: number;
+	onProgress?: (step: string, percent: number, message?: string) => void;
+	onReady?: () => void;
+	onError?: (error: Error) => void;
+}
+
+export interface RenderOptions {
+	packages?: string[];
+	timeout?: number;
 }
 
 // Event types
@@ -90,22 +98,23 @@ export interface ProgressEvent {
 // DOM scanning types
 export interface DomElementData {
 	element: HTMLElement;
-	template?: string;
-	context?: Record<string, any>;
-	packages?: string[];
-	outputSelector?: string;
-	errorSelector?: string;
-	config?: Record<string, any>;
+	template: string;
+	context: Record<string, any>;
+	packages: string[];
+	loadingMessage: string;
+	errorMessage: string;
 }
 
 export interface DomScanResult {
 	elements: DomElementData[];
-	errors: DomScanError[];
+	packages: string[];
+	errors: string[];
+	success: boolean;
 }
 
 export interface DomScanError {
-	element: HTMLElement;
-	error: string;
+	message: string;
+	element?: HTMLElement;
 	attribute?: string;
 }
 
@@ -190,36 +199,17 @@ export class PackageInstallError extends DjangoPlaygroundError {
 export class DomScanError extends DjangoPlaygroundError {
 	constructor(
 		message: string,
-		public readonly element?: HTMLElement,
-		public readonly attribute?: string
+		options?: { cause?: unknown }
 	) {
-		super(message, 'DOM_SCAN_ERROR', { element, attribute });
+		super(message, 'DOM_SCAN_ERROR');
+		if (options?.cause) {
+			this.cause = options.cause;
+		}
 	}
 }
 
-// DjangoPlayground singleton interface
+// DjangoPlayground singleton interface (for static class)
 export interface IDjangoPlayground {
-	// Static methods
-	init(options?: InitOptions): Promise<void>;
-	renderTemplate(template: string, context?: Record<string, any>): Promise<TemplateRenderResult>;
-	installPackage(packageName: string): Promise<PackageInstallResult>;
-	installPackages(packages: string[]): Promise<PackageInstallResult>;
-	batchRender(operations: Array<{ template: string; context?: Record<string, any> }>): Promise<BatchRenderResult>;
-	scanDom(selector?: string): Promise<DomScanResult>;
-	batchOperations(operations: BatchOperation[]): Promise<BatchOperationResult>;
-	
-	// Configuration and state
-	isReady(): boolean;
-	getConfig(): DjangoPlaygroundConfig;
-	updateConfig(config: Partial<DjangoPlaygroundConfig>): void;
-	
-	// Event handling
-	on(event: EventType, handler: (data: any) => void): void;
-	off(event: EventType, handler: (data: any) => void): void;
-	emit(event: EventType, data: any): void;
-	
-	// Utility methods
-	parseDataAttributes(element: HTMLElement): DomElementData;
-	renderToElement(element: HTMLElement, template: string, context?: Record<string, any>): Promise<void>;
-	installPackagesFromElement(element: HTMLElement): Promise<PackageInstallResult>;
+	// Note: This is implemented as a static class, so these are conceptual instance methods
+	// The actual implementation uses static methods
 }

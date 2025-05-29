@@ -369,7 +369,7 @@ const createDjango = (config?: DjangoConfig): DjangoInstance => {
 };
 
 // Singleton DjangoPlayground implementation
-class DjangoPlayground implements IDjangoPlayground {
+class DjangoPlayground {
 	private static instance: DjangoPlayground | null = null;
 	private state: DjangoState | null = null;
 	private initialized = false;
@@ -528,8 +528,7 @@ class DjangoPlayground implements IDjangoPlayground {
 		} catch (error) {
 			this.initPromise = null;
 			const djangoError = new DjangoPlaygroundError(
-				`Initialization failed: ${(error as Error).message}`,
-				{ cause: error }
+				`Initialization failed: ${(error as Error).message}`
 			);
 			
 			if (this.config.onError) {
@@ -565,7 +564,7 @@ class DjangoPlayground implements IDjangoPlayground {
 
 		try {
 			// Find all elements with Django template attributes
-			const templateElements = document.querySelectorAll(`[${DOM_ATTRIBUTES.TEMPLATE}]`);
+			const templateElements = Array.from(document.querySelectorAll(`[${DOM_ATTRIBUTES.TEMPLATE}]`));
 			
 			for (const element of templateElements) {
 				try {
@@ -580,7 +579,7 @@ class DjangoPlayground implements IDjangoPlayground {
 			}
 
 			// Also scan for standalone package declarations
-			const packageElements = document.querySelectorAll(`[${DOM_ATTRIBUTES.PACKAGES}]`);
+			const packageElements = Array.from(document.querySelectorAll(`[${DOM_ATTRIBUTES.PACKAGES}]`));
 			for (const element of packageElements) {
 				if (!element.hasAttribute(DOM_ATTRIBUTES.TEMPLATE)) {
 					try {
@@ -679,7 +678,7 @@ class DjangoPlayground implements IDjangoPlayground {
 
 		try {
 			// Install element-specific packages if needed
-			if (packages.length > 0) {
+			if (packages && packages.length > 0) {
 				const installResult = await installPackages(this.state!, packages);
 				if (!installResult.success && installResult.errors?.length) {
 					console.warn(`Some packages failed for element:`, installResult.errors);
@@ -687,7 +686,7 @@ class DjangoPlayground implements IDjangoPlayground {
 			}
 
 			// Render template
-			const renderedHTML = await renderTemplate(this.state!, template, context);
+			const renderedHTML = await renderTemplate(this.state!, template || '', context);
 
 			// Update element
 			element.innerHTML = renderedHTML;
